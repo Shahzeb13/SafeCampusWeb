@@ -1,5 +1,8 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import styles from './dashboard.module.css';
+import { sos } from '@/lib/api';
 
 const BellIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -37,13 +40,32 @@ const ShieldUserIcon = () => (
   </svg>
 );
 
-export default function IncidentsDashboard() {
+export default function GeneralDashboard() {
+  const [activeSOS, setActiveSOS] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchActive = async () => {
+      try {
+        const res = await sos.getActive();
+        if (res.success) {
+          setActiveSOS(res.data);
+        }
+      } catch (e) {
+        console.error("Failed to fetch active SOS", e);
+      }
+    };
+    fetchActive();
+    
+    const interval = setInterval(fetchActive, 10000); // 10s refresh for dashboard
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <>
       <header className={styles.header}>
         <div className={styles.headerTitle}>
-          <h1>Incident Dashboard</h1>
-          <p>Monitor and manage campus security</p>
+          <h1>SafeCampus Overview</h1>
+          <p>Monitor and manage campus security at a glance</p>
         </div>
         <div className={styles.headerActions}>
           <button className={styles.iconButton}>
@@ -55,34 +77,14 @@ export default function IncidentsDashboard() {
       <div className={styles.scrollableArea}>
         {/* Stats Grid */}
         <div className={styles.statsGrid}>
-          <div className={styles.statCard}>
+          <div className={styles.statCard} style={{ borderColor: activeSOS.length > 0 ? 'red' : '' }}>
             <div className={styles.statHeader}>
-              <div className={`${styles.iconBox} ${styles.iconSuccess}`}>
-                <CheckCircleIcon />
-              </div>
-            </div>
-            <span className={styles.statValue}>42</span>
-            <span className={styles.statLabel}>Resolved Cases</span>
-          </div>
-
-          <div className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <div className={`${styles.iconBox} ${styles.iconWarning}`}>
-                <ClockIcon />
-              </div>
-            </div>
-            <span className={styles.statValue}>12</span>
-            <span className={styles.statLabel}>Under Investigation</span>
-          </div>
-
-          <div className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <div className={`${styles.iconBox} ${styles.iconDanger}`}>
+              <div className={`${styles.iconBox} ${activeSOS.length > 0 ? styles.iconDanger : styles.iconSuccess}`}>
                 <AlertCircleIcon />
               </div>
             </div>
-            <span className={styles.statValue}>5</span>
-            <span className={styles.statLabel}>Active Incidents</span>
+            <span className={styles.statValue} style={{ color: activeSOS.length > 0 ? 'red' : '' }}>{activeSOS.length}</span>
+            <span className={styles.statLabel}>Active SOS ALERTS</span>
           </div>
 
           <div className={styles.statCard}>
@@ -91,85 +93,68 @@ export default function IncidentsDashboard() {
                 <ShieldUserIcon />
               </div>
             </div>
-            <span className={styles.statValue}>8</span>
-            <span className={styles.statLabel}>Security Personnel</span>
+            <span className={styles.statValue}>15</span>
+            <span className={styles.statLabel}>Total Wardens / Staff</span>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <div className={`${styles.iconBox} ${styles.iconWarning}`}>
+                <ClockIcon />
+              </div>
+            </div>
+            {/* Mock Incidents Stats, API missing */}
+            <span className={styles.statValue}>12</span>
+            <span className={styles.statLabel}>Incidents Under Investigation</span>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statHeader}>
+              <div className={`${styles.iconBox} ${styles.iconSuccess}`}>
+                <CheckCircleIcon />
+              </div>
+            </div>
+            {/* Mock Incidents Stats, API missing */}
+            <span className={styles.statValue}>42</span>
+            <span className={styles.statLabel}>Resolved Incidents</span>
           </div>
         </div>
 
         {/* Reports List */}
         <div className={styles.tableContainer}>
           <div className={styles.tableHeader}>
-            <h2>Reports Lists</h2>
-            <input 
-              type="text" 
-              placeholder="Search Report" 
-              className={styles.searchInput}
-            />
+            <h2>Active Emergencies Overview</h2>
           </div>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Type</th>
-                <th>Location</th>
-                <th>Reporter</th>
-                <th>Time</th>
-                <th>Priority</th>
+                <th>Emergency Type</th>
+                <th>Time Triggered</th>
+                <th>User Details</th>
                 <th>Status</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td style={{ color: '#2563eb', fontWeight: 500 }}>#A1025</td>
-                <td>Incident</td>
-                <td>Office 2B</td>
-                <td>Fatima S</td>
-                <td>8 hours ago</td>
-                <td><span className={`${styles.badge} ${styles.badgeInfo}`}>Low</span></td>
-                <td><span className={`${styles.badge} ${styles.badgeSuccess}`}>Resolved</span></td>
-                <td><button className={styles.rowAction}>⋮</button></td>
-              </tr>
-              <tr>
-                <td style={{ color: '#2563eb', fontWeight: 500 }}>#A1026</td>
-                <td>Incident</td>
-                <td>Cafeteria</td>
-                <td>Ahmed R</td>
-                <td>8 hours ago</td>
-                <td><span className={`${styles.badge} ${styles.badgeWarning}`}>Medium</span></td>
-                <td><span className={`${styles.badge} ${styles.badgeSuccess}`}>Resolved</span></td>
-                <td><button className={styles.rowAction}>⋮</button></td>
-              </tr>
-              <tr>
-                <td style={{ color: '#2563eb', fontWeight: 500 }}>#A1027</td>
-                <td>Request</td>
-                <td>Reception</td>
-                <td>Mike D</td>
-                <td>5 hours ago</td>
-                <td><span className={`${styles.badge} ${styles.badgeInfo}`}>Low</span></td>
-                <td><span className={`${styles.badge} ${styles.badgeSuccess}`}>Resolved</span></td>
-                <td><button className={styles.rowAction}>⋮</button></td>
-              </tr>
-              <tr>
-                <td style={{ color: '#2563eb', fontWeight: 500 }}>#A1028</td>
-                <td>Maintenance</td>
-                <td>Office 2B</td>
-                <td>Sarah J</td>
-                <td>1 hours ago</td>
-                <td><span className={`${styles.badge} ${styles.badgeWarning}`}>Medium</span></td>
-                <td><span className={`${styles.badge} ${styles.badgeInfo}`}>Investigating</span></td>
-                <td><button className={styles.rowAction}>⋮</button></td>
-              </tr>
-              <tr>
-                <td style={{ color: '#2563eb', fontWeight: 500 }}>#A1029</td>
-                <td>Maintenance</td>
-                <td>Reception</td>
-                <td>Zara B</td>
-                <td>3 hours ago</td>
-                <td><span className={`${styles.badge} ${styles.badgeDanger}`}>High</span></td>
-                <td><span className={`${styles.badge} ${styles.badgeInfo}`}>Investigating</span></td>
-                <td><button className={styles.rowAction}>⋮</button></td>
-              </tr>
+              {activeSOS.length === 0 ? (
+                <tr>
+                   <td colSpan={4} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
+                     No Active Emergency Signals at the moment.
+                   </td>
+                </tr>
+              ) : (
+                activeSOS.map((alert) => (
+                  <tr key={alert._id}>
+                    <td><span style={{ color: 'red', fontWeight: 'bold' }}>SOS ALARM</span></td>
+                    <td>{new Date(alert.createdAt).toLocaleTimeString()}</td>
+                    <td>{alert.userId?.username || 'Unknown'} - {alert.userId?.email}</td>
+                    <td>
+                      <span className={`${styles.badge} ${styles.badgeDanger}`} style={{ textTransform: 'uppercase' }}>
+                        {alert.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

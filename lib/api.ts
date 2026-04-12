@@ -2,7 +2,6 @@ const BASE_URL = "http://localhost:4000/api";
 
 /**
  * A simple helper to call your backend APIs.
- * <T> is a generic. It tells TypeScript: "Whatever the 'type' of data we get back is, use that."
  */
 async function apiRequest<T>(endpoint: string, method: string = "GET", data?: any): Promise<T> {
   const url = `${BASE_URL}${endpoint}`;
@@ -16,7 +15,7 @@ async function apiRequest<T>(endpoint: string, method: string = "GET", data?: an
     credentials: "include",
   };
 
-  // If we have data (like login info), add it to the body
+  // If we have data, add it to the body
   if (data) {
     options.body = JSON.stringify(data);
   }
@@ -34,14 +33,51 @@ async function apiRequest<T>(endpoint: string, method: string = "GET", data?: an
 // Simple Auth Functions
 export const auth = {
   login: (credentials: any) => {
-    return apiRequest("/auth/login", "POST", credentials);
+    return apiRequest<any>("/auth/login", "POST", credentials);
   },
   
   logout: () => {
-    return apiRequest("/auth/logout", "POST");
+    return apiRequest<any>("/auth/logout", "POST");
   },
   
   getProfile: () => {
-    return apiRequest("/auth/profile", "GET");
+    return apiRequest<any>("/auth/profile", "GET");
+  }
+};
+
+// Admin Users
+export const users = {
+  create: (userData: any) => {
+    // Requires admin role in JWT
+    return apiRequest<any>("/admin/users", "POST", userData);
+  }
+};
+
+// SOS System
+export const sos = {
+  getAll: () => {
+    return apiRequest<any>("/sos/", "GET");
+  },
+  getActive: () => {
+    return apiRequest<any>("/sos/active", "GET");
+  },
+  updateStatus: (id: string, status: string) => {
+    return apiRequest<any>(`/sos/${id}/status`, "PATCH", { status });
+  },
+  getById: (id: string) => {
+    return apiRequest<any>(`/sos/${id}`, "GET");
+  }
+};
+
+// Incidents (We just added an admin global getAllIncidents route!)
+export const incidents = {
+  getAll: (type?: string) => {
+    return apiRequest<any>(`/incidents${type ? `?type=${type}` : ''}`, "GET");
+  },
+  getMyIncidents: () => {
+    return apiRequest<any>("/incidents/myIncidents", "GET");
+  },
+  getById: (id: string) => {
+    return apiRequest<any>(`/incidents/${id}`, "GET");
   }
 };

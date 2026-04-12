@@ -1,5 +1,9 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 import styles from '../dashboard.module.css';
+import { users } from '@/lib/api';
+import toast from 'react-hot-toast';
 
 const BellIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -8,49 +12,32 @@ const BellIcon = () => (
   </svg>
 );
 
-const UsersIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
-
-const UserCheckIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-    <circle cx="8.5" cy="7" r="4" />
-    <polyline points="17 11 19 13 23 9" />
-  </svg>
-);
-
-const UserMinusIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-    <circle cx="8.5" cy="7" r="4" />
-    <line x1="18" y1="8" x2="23" y2="13" />
-    <line x1="23" y1="8" x2="18" y2="13" />
-  </svg>
-);
-
-const HandIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
-    <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" />
-    <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
-    <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.508-1.827-4.885-3.116L5.59 13.6a1 1 0 0 1 .4-1.2l2.6-1.5" />
-    <path d="M6 10V2a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v9" />
-  </svg>
-);
-
 export default function UsersDashboard() {
+  const [formData, setFormData] = useState({ username: '', email: '', password: '', role: 'student' });
+  const [loading, setLoading] = useState(false);
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await users.create(formData);
+      if (res.success) {
+        toast.success(res.message || 'User created successfully');
+        setFormData({ username: '', email: '', password: '', role: 'student' });
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create user');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <header className={styles.header}>
         <div className={styles.headerTitle}>
           <h1>User Management Dashboard</h1>
-          <p>Monitor and manage campus security</p>
+          <p>Monitor and manage campus accounts</p>
         </div>
         <div className={styles.headerActions}>
           <button className={styles.iconButton}>
@@ -60,47 +47,39 @@ export default function UsersDashboard() {
       </header>
 
       <div className={styles.scrollableArea}>
-        {/* Stats Grid */}
-        <div className={styles.statsGrid}>
-          <div className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <div className={`${styles.iconBox} ${styles.iconInfo}`}>
-                <UsersIcon />
-              </div>
-            </div>
-            <span className={styles.statValue}>1250</span>
-            <span className={styles.statLabel}>Total Users</span>
-          </div>
 
-          <div className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <div className={`${styles.iconBox} ${styles.iconSuccess}`}>
-                <UserCheckIcon />
+        {/* Create User Section */}
+        <div className={styles.tableContainer} style={{ marginBottom: '2rem' }}>
+           <div className={styles.tableHeader}>
+              <h2>Create New User</h2>
+           </div>
+           
+           <form onSubmit={handleCreateUser} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Username</label>
+                <input required type="text" className={styles.input} value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} style={{ padding: '0.5rem', borderRadius: '8px', border: '1px solid #3f3f46', backgroundColor: '#27272a', color: '#fff' }} />
               </div>
-            </div>
-            <span className={styles.statValue}>1190</span>
-            <span className={styles.statLabel}>Active Users</span>
-          </div>
-
-          <div className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <div className={`${styles.iconBox} ${styles.iconWarning}`}>
-                <HandIcon />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Email</label>
+                <input required type="email" className={styles.input} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} style={{ padding: '0.5rem', borderRadius: '8px', border: '1px solid #3f3f46', backgroundColor: '#27272a', color: '#fff' }} />
               </div>
-            </div>
-            <span className={styles.statValue}>12</span>
-            <span className={styles.statLabel}>Admin Requests</span>
-          </div>
-
-          <div className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <div className={`${styles.iconBox} ${styles.iconDanger}`}>
-                <UserMinusIcon />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Password</label>
+                <input required type="password" className={styles.input} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} style={{ padding: '0.5rem', borderRadius: '8px', border: '1px solid #3f3f46', backgroundColor: '#27272a', color: '#fff' }} />
               </div>
-            </div>
-            <span className={styles.statValue}>5</span>
-            <span className={styles.statLabel}>Blocked Users</span>
-          </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Role</label>
+                <select className={styles.input} value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} style={{ padding: '0.5rem', borderRadius: '8px', border: '1px solid #3f3f46', backgroundColor: '#27272a', color: '#fff' }}>
+                   <option value="student">Student</option>
+                   <option value="staff">Staff</option>
+                </select>
+              </div>
+              <div style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>
+                 <button type="submit" disabled={loading} className={styles.primaryButton} style={{ padding: '0.75rem 1.5rem', width: 'auto' }}>
+                    {loading ? 'Creating...' : 'Create User'}
+                 </button>
+              </div>
+           </form>
         </div>
 
         {/* Users List */}
@@ -113,6 +92,13 @@ export default function UsersDashboard() {
               className={styles.searchInput}
             />
           </div>
+          
+          <div style={{ backgroundColor: '#fffbe1', color: '#856404', padding: '10px 15px', borderRadius: '8px', marginBottom: '1rem', fontSize: '14px', border: '1px solid #ffeeba' }}>
+            <strong>Backend Integration Note:</strong> The backend only provides user creation for admins (`POST /api/admin/users`). 
+            An endpoint to list users (`GET /api/admin/users`) is missing. 
+            Showing structural mock data below.
+          </div>
+
           <table className={styles.table}>
             <thead>
               <tr>
@@ -126,11 +112,11 @@ export default function UsersDashboard() {
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 6 }).map((_, i) => (
+              {Array.from({ length: 3 }).map((_, i) => (
                 <tr key={i}>
-                  <td style={{ color: '#2563eb', fontWeight: 500 }}>noorfaraz</td>
-                  <td>sample@email.com</td>
-                  <td>Admin</td>
+                  <td style={{ color: '#2563eb', fontWeight: 500 }}>mockuser_{i}</td>
+                  <td>sample{i}@email.com</td>
+                  <td>Student</td>
                   <td><span className={`${styles.badge} ${styles.badgeSuccess}`}>On</span></td>
                   <td><span className={`${styles.badge} ${styles.badgeSuccess}`}>● Online</span></td>
                   <td><span className={`${styles.badge} ${styles.badgeInfo}`}>0</span></td>
