@@ -81,3 +81,20 @@ export const incidents = {
     return apiRequest<any>(`/incidents/${id}`, "GET");
   }
 };
+
+// Emergency Contacts (Admin management)
+export const emergencyContacts = {
+  getAll: () => {
+    return apiRequest<any>("/emergency-contacts", "GET");
+  },
+  create: (data: any) => {
+    return apiRequest<any>("/emergency-contacts", "POST", data);
+  },
+  update: (id: string, data: any) => {
+    return apiRequest<any>(`/emergency-contacts/${id}`, "PUT", data);
+  },
+  delete: (id: string) => {
+    return apiRequest<any>(`/emergency-contacts/${id}`, "DELETE");
+  }
+};
+
