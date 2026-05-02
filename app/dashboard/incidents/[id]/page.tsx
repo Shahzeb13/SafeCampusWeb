@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { incidents } from '@/lib/api';
+import { incidents, securityGuards, incidentAssignment } from '@/lib/api';
 import toast from 'react-hot-toast';
 import styles from '../../dashboard.module.css';
 import dynamic from 'next/dynamic';
@@ -18,10 +18,28 @@ export default function IncidentDetailsPage({ params }: { params: Promise<{ id: 
   const [incident, setIncident] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [scanningImage, setScanningImage] = useState<string | null>(null);
+  const [guards, setGuards] = useState<any[]>([]);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assigningGuardId, setAssigningGuardId] = useState<string | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   useEffect(() => {
     fetchIncident();
+    fetchGuards();
   }, [id]);
+
+  const handleUpdateStatus = async (status: string) => {
+    try {
+      setUpdatingStatus(true);
+      await incidents.updateStatus(id, status);
+      toast.success(`Incident marked as ${status}`);
+      fetchIncident();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update status');
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
 
   const fetchIncident = async () => {
     try {
@@ -33,6 +51,29 @@ export default function IncidentDetailsPage({ params }: { params: Promise<{ id: 
       router.push('/dashboard/incidents');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchGuards = async () => {
+    try {
+      const res = await securityGuards.getAll();
+      setGuards(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch guards');
+    }
+  };
+
+  const handleAssignGuard = async (guardId: string) => {
+    try {
+      setAssigningGuardId(guardId);
+      await incidentAssignment.assign(id, guardId);
+      toast.success('Incident assigned to security guard!');
+      setShowAssignModal(false);
+      fetchIncident();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to assign');
+    } finally {
+      setAssigningGuardId(null);
     }
   };
 
@@ -466,10 +507,142 @@ export default function IncidentDetailsPage({ params }: { params: Promise<{ id: 
               )}
             </div>
 
+            {/* Assignment Card */}
+            <div style={{ background: 'rgba(30, 27, 36, 0.8)', border: '1px solid rgba(139, 92, 246, 0.2)', borderRadius: '12px', padding: '20px' }}>
+              <h3 style={{ fontSize: '0.9rem', color: '#94a3b8', margin: '0 0 16px 0', textTransform: 'uppercase', letterSpacing: '1px' }}>Guard Assignment</h3>
+              
+              {incident.assigned_to ? (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #22c55e, #16a34a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff' }}>
+                      🛡️
+                    </div>
+                    <div>
+                      <div style={{ color: '#f8fafc', fontWeight: 500 }}>{incident.assigned_to?.username || 'Guard'}</div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{incident.assigned_to?.email || ''}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, padding: '4px 10px', borderRadius: '6px', textTransform: 'uppercase',
+                      background: incident.assignmentResponse === 'responding' ? 'rgba(34,197,94,0.15)' : incident.assignmentResponse === 'unavailable' ? 'rgba(239,68,68,0.15)' : incident.assignmentResponse === 'completed' ? 'rgba(34,197,94,0.15)' : 'rgba(251,191,36,0.15)',
+                      color: incident.assignmentResponse === 'responding' ? '#22c55e' : incident.assignmentResponse === 'unavailable' ? '#ef4444' : incident.assignmentResponse === 'completed' ? '#22c55e' : '#fbbf24'
+                    }}>
+                      {incident.assignmentResponse || 'pending'}
+                    </span>
+                  </div>
+                  {incident.assignmentNote && (
+                    <div style={{ fontSize: '0.85rem', color: '#cbd5e1', background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px', marginTop: '8px' }}>
+                      Note: {incident.assignmentNote}
+                    </div>
+                  )}
+                  
+                  {/* Approve & Resolve Action - only for active responses */}
+                  {incident.assignmentResponse === 'responding' && incident.status !== 'resolved' && (
+                    <button
+                      onClick={() => handleUpdateStatus('resolved')}
+                      disabled={updatingStatus}
+                      style={{ marginTop: '16px', width: '100%', padding: '12px', borderRadius: '8px', background: 'linear-gradient(90deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', boxShadow: '0 4px 12px rgba(16,185,129,0.2)' }}
+                    >
+                      {updatingStatus ? 'Resolving...' : '✅ Approve & Resolve Incident'}
+                    </button>
+                  )}
+
+                  {(incident.assignmentResponse === 'unavailable' || !incident.assignmentResponse) && (
+                    <button
+                      onClick={() => setShowAssignModal(true)}
+                      style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(139,92,246,0.3)', background: 'rgba(139,92,246,0.1)', color: '#a78bfa', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      Reassign Guard
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowAssignModal(true)}
+                  style={{ width: '100%', padding: '14px', borderRadius: '10px', background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }}
+                >
+                  🛡️ Assign to Security Guard
+                </button>
+              )}
+            </div>
+
           </div>
 
         </div>
       </div>
+
+      {/* Guard Selection Modal */}
+      {showAssignModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '40px'
+        }}>
+          <div style={{
+            width: '100%', maxWidth: '500px', background: '#09090b', borderRadius: '20px',
+            border: '1px solid rgba(139,92,246,0.3)', overflow: 'hidden',
+            boxShadow: '0 0 60px rgba(99,102,241,0.15)'
+          }}>
+            <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.2rem', color: '#fff' }}>Select Security Guard</h2>
+                <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: '#a1a1aa' }}>Choose a guard to dispatch to this incident</p>
+              </div>
+              <button
+                onClick={() => setShowAssignModal(false)}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '16px' }}
+              >✕</button>
+            </div>
+
+            <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '16px' }}>
+              {guards.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#a1a1aa' }}>
+                  <p style={{ fontSize: '2rem', margin: '0 0 12px' }}>🛡️</p>
+                  <p style={{ margin: 0 }}>No security personnel registered yet.</p>
+                  <p style={{ margin: '8px 0 0', fontSize: '0.8rem' }}>Create one from Manage Users.</p>
+                </div>
+              ) : (
+                guards.map((guard: any) => (
+                  <div key={guard._id} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '14px', borderRadius: '12px', marginBottom: '8px',
+                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                    transition: 'all 0.2s'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{
+                        width: '40px', height: '40px', borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontWeight: 'bold', color: '#fff', fontSize: '0.9rem'
+                      }}>
+                        {guard.username?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                      <div>
+                        <div style={{ color: '#f8fafc', fontWeight: 500, fontSize: '0.95rem' }}>{guard.username}</div>
+                        <div style={{ color: '#71717a', fontSize: '0.8rem' }}>{guard.email}</div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleAssignGuard(guard._id)}
+                      disabled={assigningGuardId === guard._id}
+                      style={{
+                        padding: '8px 18px', borderRadius: '8px',
+                        background: assigningGuardId === guard._id ? '#333' : 'linear-gradient(90deg, #22c55e, #16a34a)',
+                        color: '#fff', border: 'none', cursor: assigningGuardId === guard._id ? 'wait' : 'pointer',
+                        fontWeight: 600, fontSize: '0.8rem',
+                        boxShadow: '0 2px 8px rgba(34,197,94,0.3)'
+                      }}
+                    >
+                      {assigningGuardId === guard._id ? 'Assigning...' : 'Dispatch'}
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

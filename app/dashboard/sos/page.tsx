@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import styles from '../dashboard.module.css';
-import { sos } from '@/lib/api';
+import { sos, securityGuards } from '@/lib/api';
 import toast from 'react-hot-toast';
 import dynamic from 'next/dynamic';
 import { MapMarker } from '@/components/Map/types';
@@ -15,15 +15,33 @@ export default function SOSPage() {
   const [loading, setLoading] = useState(true);
   const [selectedMapAlert, setSelectedMapAlert] = useState<any | null>(null);
   const [geocodedAddress, setGeocodedAddress] = useState<string>("");
+  
+  // Guard Assignment State
+  const [guards, setGuards] = useState<any[]>([]);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [activeSOSForAssign, setActiveSOSForAssign] = useState<any | null>(null);
+  const [assigningGuardId, setAssigningGuardId] = useState<string | null>(null);
 
   // Poll for SOS updates every 5 seconds
   useEffect(() => {
     fetchSOS();
+    fetchGuards();
     const interval = setInterval(() => {
       fetchSOS(false);
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  const fetchGuards = async () => {
+    try {
+      const res = await securityGuards.getAll();
+      if (res.success) {
+        setGuards(res.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch guards", error);
+    }
+  };
 
   // Sync selected map alert with live polling data if it belongs to the active modal
   useEffect(() => {
@@ -89,6 +107,30 @@ export default function SOSPage() {
     } catch (err: any) {
       toast.error('Failed to update status');
     }
+  };
+
+  const handleAssignGuard = async (guardId: string) => {
+    if (!activeSOSForAssign) return;
+    setAssigningGuardId(guardId);
+    try {
+      const res = await sos.assignGuard(activeSOSForAssign._id, guardId);
+      if (res.success) {
+        toast.success('Guard dispatched successfully! Notifications sent.');
+        setShowAssignModal(false);
+        fetchSOS(false);
+      } else {
+        toast.error(res.message || 'Failed to dispatch guard');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to dispatch guard');
+    } finally {
+      setAssigningGuardId(null);
+    }
+  };
+
+  const openAssignModal = (alert: any) => {
+    setActiveSOSForAssign(alert);
+    setShowAssignModal(true);
   };
 
   const openMap = (alert: any) => {
@@ -210,26 +252,59 @@ export default function SOSPage() {
                         </div>
                      </div>
 
-                     {(lat && lng) ? (
-                        <button 
-                          onClick={() => openMap(alert)}
-                          className={styles.primaryButton}
-                          style={{ 
-                            width: '100%', 
-                            background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)', 
-                            boxShadow: '0 4px 14px rgba(139, 92, 246, 0.3)',
-                            color: 'white',
-                            fontWeight: 500,
-                            border: 'none',
-                            borderRadius: '8px',
-                            padding: '10px'
-                          }}
-                        >
-                          View on Map
-                        </button>
-                     ) : (
-                        <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', fontSize: '0.85rem', color: '#94a3b8' }}>No GPS Data Acquired</div>
-                     )}
+                     <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', flexWrap: 'wrap' }}>
+                       {(lat && lng) ? (
+                          <button 
+                            onClick={() => openMap(alert)}
+                            className={styles.primaryButton}
+                            style={{ 
+                              flex: 1, 
+                              background: 'rgba(255, 255, 255, 0.05)', 
+                              color: 'white',
+                              fontWeight: 500,
+                              border: '1px solid rgba(255, 255, 255, 0.1)',
+                              borderRadius: '8px',
+                              padding: '10px'
+                            }}
+                          >
+                            Map
+                          </button>
+                       ) : (
+                          <div style={{ flex: 1, textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', fontSize: '0.85rem', color: '#94a3b8' }}>No GPS</div>
+                       )}
+
+                       {alert.assigned_to ? (
+                         <div style={{ flex: 2, background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '8px', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <div style={{ fontSize: '0.7rem', color: '#34d399', textTransform: 'uppercase' }}>Guard Dispatched</div>
+                            <div style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 500 }}>{alert.assigned_to.username}</div>
+                            {alert.assignmentResponse && (
+                              <div style={{ fontSize: '0.7rem', color: alert.assignmentResponse === 'unavailable' ? '#ef4444' : '#cbd5e1', marginTop: '2px' }}>
+                                Status: {alert.assignmentResponse}
+                                {alert.assignmentResponse === 'unavailable' && (
+                                  <span style={{ cursor: 'pointer', textDecoration: 'underline', marginLeft: '6px' }} onClick={() => openAssignModal(alert)}>Reassign</span>
+                                )}
+                              </div>
+                            )}
+                         </div>
+                       ) : (
+                         <button 
+                            onClick={() => openAssignModal(alert)}
+                            className={styles.primaryButton}
+                            style={{ 
+                              flex: 2, 
+                              background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)', 
+                              boxShadow: '0 4px 14px rgba(139, 92, 246, 0.3)',
+                              color: 'white',
+                              fontWeight: 500,
+                              border: 'none',
+                              borderRadius: '8px',
+                              padding: '10px'
+                            }}
+                          >
+                            🛡️ Dispatch Guard
+                          </button>
+                       )}
+                     </div>
                    </div>
                  );
               })}
@@ -353,6 +428,78 @@ export default function SOSPage() {
                     <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#f1f5f9' }}>Receiving exact GPS feed</span>
                  </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Guard Selection Modal */}
+      {showAssignModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '40px'
+        }}>
+          <div style={{
+            width: '100%', maxWidth: '500px', background: '#09090b', borderRadius: '20px',
+            border: '1px solid rgba(139,92,246,0.3)', overflow: 'hidden',
+            boxShadow: '0 0 60px rgba(99,102,241,0.15)'
+          }}>
+            <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.2rem', color: '#fff' }}>Dispatch Security Guard</h2>
+                <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: '#a1a1aa' }}>Respond to SOS from {activeSOSForAssign?.userId?.username}</p>
+              </div>
+              <button
+                onClick={() => setShowAssignModal(false)}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '16px' }}
+              >✕</button>
+            </div>
+
+            <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '16px' }}>
+              {guards.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#a1a1aa' }}>
+                  <p style={{ fontSize: '2rem', margin: '0 0 12px' }}>🛡️</p>
+                  <p style={{ margin: 0 }}>No security personnel registered yet.</p>
+                </div>
+              ) : (
+                guards.map((guard: any) => (
+                  <div key={guard._id} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '14px', borderRadius: '12px', marginBottom: '8px',
+                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                    transition: 'all 0.2s'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{
+                        width: '40px', height: '40px', borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontWeight: 'bold', color: '#fff', fontSize: '0.9rem'
+                      }}>
+                        {guard.username?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                      <div>
+                        <div style={{ color: '#f8fafc', fontWeight: 500, fontSize: '0.95rem' }}>{guard.username}</div>
+                        <div style={{ color: '#71717a', fontSize: '0.8rem' }}>{guard.email}</div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleAssignGuard(guard._id)}
+                      disabled={assigningGuardId === guard._id}
+                      style={{
+                        padding: '8px 18px', borderRadius: '8px',
+                        background: assigningGuardId === guard._id ? '#333' : 'linear-gradient(90deg, #ef4444, #dc2626)',
+                        color: '#fff', border: 'none', cursor: assigningGuardId === guard._id ? 'wait' : 'pointer',
+                        fontWeight: 600, fontSize: '0.8rem',
+                        boxShadow: '0 2px 8px rgba(239,68,68,0.3)'
+                      }}
+                    >
+                      {assigningGuardId === guard._id ? 'Deploying...' : 'Dispatch'}
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

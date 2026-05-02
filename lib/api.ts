@@ -66,6 +66,9 @@ export const sos = {
   },
   getById: (id: string) => {
     return apiRequest<any>(`/sos/${id}`, "GET");
+  },
+  assignGuard: (sosId: string, guardId: string) => {
+    return apiRequest<any>("/sos/assign", "POST", { sosId, guardId });
   }
 };
 
@@ -79,6 +82,9 @@ export const incidents = {
   },
   getById: (id: string) => {
     return apiRequest<any>(`/incidents/${id}`, "GET");
+  },
+  updateStatus: (incidentId: string, status: string) => {
+    return apiRequest<any>("/incidents/update-status", "POST", { incidentId, status });
   }
 };
 
@@ -98,3 +104,16 @@ export const emergencyContacts = {
   }
 };
 
+// Security Personnel Management
+export const securityGuards = {
+  getAll: () => {
+    return apiRequest<any>("/admin/security-personnel", "GET");
+  },
+};
+
+// Incident Assignment
+export const incidentAssignment = {
+  assign: (incidentId: string, guardId: string) => {
+    return apiRequest<any>("/incidents/assign", "POST", { incidentId, guardId });
+  },
+};

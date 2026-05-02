@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import styles from './dashboard.module.css';
-import { sos } from '@/lib/api';
+import { sos, incidents as incidentApi } from '@/lib/api';
 
 const BellIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -42,21 +42,36 @@ const ShieldUserIcon = () => (
 
 export default function GeneralDashboard() {
   const [activeSOS, setActiveSOS] = useState<any[]>([]);
+  const [recentAssignments, setRecentAssignments] = useState<any[]>([]);
+  const [stats, setStats] = useState({ pending: 0, resolved: 0, security: 0 });
 
   useEffect(() => {
-    const fetchActive = async () => {
+    const fetchData = async () => {
       try {
-        const res = await sos.getActive();
-        if (res.success) {
-          setActiveSOS(res.data);
-        }
+        const sosRes = await sos.getActive();
+        if (sosRes.success) setActiveSOS(sosRes.data);
+
+        const incRes = await incidentApi.getAll();
+        const allIncidents = incRes || [];
+        
+        // Filter for assigned incidents to show in the feed
+        const assigned = allIncidents.filter((i: any) => i.assigned_to).slice(0, 10);
+        setRecentAssignments(assigned);
+
+        // Calculate stats
+        setStats({
+          pending: allIncidents.filter((i: any) => i.status === 'pending').length,
+          resolved: allIncidents.filter((i: any) => i.status === 'resolved').length,
+          security: 15 // Mock or fetch from guards API
+        });
+
       } catch (e) {
-        console.error("Failed to fetch active SOS", e);
+        console.error("Dashboard data fetch failed", e);
       }
     };
-    fetchActive();
-    
-    const interval = setInterval(fetchActive, 10000); // 10s refresh for dashboard
+
+    fetchData();
+    const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -77,13 +92,13 @@ export default function GeneralDashboard() {
       <div className={styles.scrollableArea}>
         {/* Stats Grid */}
         <div className={styles.statsGrid}>
-          <div className={styles.statCard} style={{ borderColor: activeSOS.length > 0 ? 'red' : '' }}>
+          <div className={styles.statCard} style={{ borderColor: activeSOS.length > 0 ? '#ef4444' : '' }}>
             <div className={styles.statHeader}>
               <div className={`${styles.iconBox} ${activeSOS.length > 0 ? styles.iconDanger : styles.iconSuccess}`}>
                 <AlertCircleIcon />
               </div>
             </div>
-            <span className={styles.statValue} style={{ color: activeSOS.length > 0 ? 'red' : '' }}>{activeSOS.length}</span>
+            <span className={styles.statValue} style={{ color: activeSOS.length > 0 ? '#ef4444' : '' }}>{activeSOS.length}</span>
             <span className={styles.statLabel}>Active SOS ALERTS</span>
           </div>
 
@@ -93,8 +108,8 @@ export default function GeneralDashboard() {
                 <ShieldUserIcon />
               </div>
             </div>
-            <span className={styles.statValue}>15</span>
-            <span className={styles.statLabel}>Total Wardens / Staff</span>
+            <span className={styles.statValue}>{stats.security}</span>
+            <span className={styles.statLabel}>Registered Security Guards</span>
           </div>
 
           <div className={styles.statCard}>
@@ -103,9 +118,8 @@ export default function GeneralDashboard() {
                 <ClockIcon />
               </div>
             </div>
-            {/* Mock Incidents Stats, API missing */}
-            <span className={styles.statValue}>12</span>
-            <span className={styles.statLabel}>Incidents Under Investigation</span>
+            <span className={styles.statValue}>{stats.pending}</span>
+            <span className={styles.statLabel}>Incidents Pending Dispatch</span>
           </div>
 
           <div className={styles.statCard}>
@@ -114,49 +128,95 @@ export default function GeneralDashboard() {
                 <CheckCircleIcon />
               </div>
             </div>
-            {/* Mock Incidents Stats, API missing */}
-            <span className={styles.statValue}>42</span>
-            <span className={styles.statLabel}>Resolved Incidents</span>
+            <span className={styles.statValue}>{stats.resolved}</span>
+            <span className={styles.statLabel}>Successfully Resolved</span>
           </div>
         </div>
 
-        {/* Reports List */}
-        <div className={styles.tableContainer}>
-          <div className={styles.tableHeader}>
-            <h2>Active Emergencies Overview</h2>
-          </div>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Emergency Type</th>
-                <th>Time Triggered</th>
-                <th>User Details</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activeSOS.length === 0 ? (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+          {/* SOS Reports List */}
+          <div className={styles.tableContainer}>
+            <div className={styles.tableHeader}>
+              <h2>🔴 Active Emergencies</h2>
+            </div>
+            <table className={styles.table}>
+              <thead>
                 <tr>
-                   <td colSpan={4} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
-                     No Active Emergency Signals at the moment.
-                   </td>
+                  <th>Type</th>
+                  <th>User</th>
+                  <th>Status</th>
                 </tr>
-              ) : (
-                activeSOS.map((alert) => (
-                  <tr key={alert._id}>
-                    <td><span style={{ color: 'red', fontWeight: 'bold' }}>SOS ALARM</span></td>
-                    <td>{new Date(alert.createdAt).toLocaleTimeString()}</td>
-                    <td>{alert.userId?.username || 'Unknown'} - {alert.userId?.email}</td>
-                    <td>
-                      <span className={`${styles.badge} ${styles.badgeDanger}`} style={{ textTransform: 'uppercase' }}>
-                        {alert.status}
-                      </span>
+              </thead>
+              <tbody>
+                {activeSOS.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
+                      No active distress signals.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  activeSOS.map((alert) => (
+                    <tr key={alert._id}>
+                      <td><span style={{ color: '#ef4444', fontWeight: 'bold' }}>SOS ALARM</span></td>
+                      <td>{alert.userId?.username || 'Unknown'}</td>
+                      <td>
+                        <span className={`${styles.badge} ${styles.badgeDanger}`}>
+                          {alert.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Security Response Feed */}
+          <div className={styles.tableContainer}>
+            <div className={styles.tableHeader}>
+              <h2>🛡️ Security Response Feed</h2>
+            </div>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Guard</th>
+                  <th>Incident</th>
+                  <th>Response</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentAssignments.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
+                      No recent security assignments.
+                    </td>
+                  </tr>
+                ) : (
+                  recentAssignments.map((assignment) => (
+                    <tr key={assignment._id}>
+                      <td>
+                        <div style={{ fontWeight: 600, color: '#fff' }}>{assignment.assigned_to?.username}</div>
+                        <div style={{ fontSize: '0.7rem', color: '#71717a' }}>{new Date(assignment.updatedAt).toLocaleTimeString()}</div>
+                      </td>
+                      <td style={{ maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {assignment.title}
+                      </td>
+                      <td>
+                        <span className={`${styles.badge} ${
+                          assignment.assignmentResponse === 'responding' ? styles.badgeSuccess : 
+                          assignment.assignmentResponse === 'unavailable' ? styles.badgeDanger : 
+                          assignment.assignmentResponse === 'completed' ? styles.badgeSuccess : 
+                          styles.badgeWarning
+                        }`}>
+                          {assignment.assignmentResponse || 'Pending'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </>
