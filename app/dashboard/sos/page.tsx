@@ -98,8 +98,15 @@ export default function SOSPage() {
   };
 
   const handleStatusChange = async (id: string, newStatus: string) => {
+    let reason = '';
+    if (newStatus === 'rejected') {
+      const input = window.prompt("Please provide a reason for rejection (optional):");
+      if (input === null) return; // User cancelled
+      reason = input;
+    }
+
     try {
-      const res = await sos.updateStatus(id, newStatus);
+      const res = await sos.updateStatus(id, newStatus, reason || undefined);
       if (res.success) {
         toast.success(`Status updated to ${newStatus}`);
         fetchSOS(false);
@@ -232,6 +239,7 @@ export default function SOSPage() {
                           <option value="acknowledged">Acknowledged</option>
                           <option value="responding">Responding</option>
                           <option value="resolved">Resolved</option>
+                          <option value="rejected">Rejected</option>
                         </select>
                      </div>
 

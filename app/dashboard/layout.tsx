@@ -40,6 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Face Scan', path: '/dashboard/facial-recognition', icon: <FaceIcon /> },
     { name: 'Emergency Contacts', path: '/dashboard/emergency-contacts', icon: <PhoneCallIcon /> },
     { name: 'Security Guards', path: '/dashboard/security-guards', icon: <ShieldGuardIcon /> },
+    { name: 'Messages', path: '/dashboard/messages', icon: <ChatIcon /> },
     { name: 'Manage Users', path: '/dashboard/users', icon: <UsersIcon /> },
   ];
 
@@ -193,5 +194,11 @@ const ShieldGuardIcon = () => (
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     <circle cx="12" cy="10" r="3" />
     <path d="M12 13v3" />
+  </svg>
+);
+
+const ChatIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
   </svg>
 );

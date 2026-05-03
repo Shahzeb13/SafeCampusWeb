@@ -31,7 +31,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await auth.login(formData);
+      const result = await auth.login(formData);
+      if (result.token) {
+        localStorage.setItem('userToken', result.token);
+      }
       toast.success('Successfully logged in!');
       router.push('/dashboard'); 
     } catch (err: any) {

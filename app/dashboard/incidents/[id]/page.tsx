@@ -29,9 +29,16 @@ export default function IncidentDetailsPage({ params }: { params: Promise<{ id: 
   }, [id]);
 
   const handleUpdateStatus = async (status: string) => {
+    let reason = '';
+    if (status === 'rejected') {
+      const input = window.prompt("Please provide a reason for rejection (optional):");
+      if (input === null) return; // User cancelled
+      reason = input;
+    }
+
     try {
       setUpdatingStatus(true);
-      await incidents.updateStatus(id, status);
+      await incidents.updateStatus(id, status, reason || undefined);
       toast.success(`Incident marked as ${status}`);
       fetchIncident();
     } catch (err: any) {
@@ -555,14 +562,55 @@ export default function IncidentDetailsPage({ params }: { params: Promise<{ id: 
                       Reassign Guard
                     </button>
                   )}
+                  {incident.status !== 'resolved' && incident.status !== 'rejected' && (
+                    <button
+                      onClick={() => handleUpdateStatus('rejected')}
+                      disabled={updatingStatus}
+                      style={{ 
+                        marginTop: '12px', 
+                        width: '100%', 
+                        padding: '12px', 
+                        borderRadius: '10px', 
+                        background: 'rgba(239, 68, 68, 0.1)', 
+                        color: '#ef4444', 
+                        border: '1px solid rgba(239, 68, 68, 0.2)', 
+                        cursor: 'pointer', 
+                        fontWeight: 600, 
+                        fontSize: '0.85rem' 
+                      }}
+                    >
+                      {updatingStatus ? 'Rejecting...' : '🚫 Reject Incident'}
+                    </button>
+                  )}
                 </div>
               ) : (
-                <button
-                  onClick={() => setShowAssignModal(true)}
-                  style={{ width: '100%', padding: '14px', borderRadius: '10px', background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }}
-                >
-                  🛡️ Assign to Security Guard
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <button
+                    onClick={() => setShowAssignModal(true)}
+                    style={{ width: '100%', padding: '14px', borderRadius: '10px', background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }}
+                  >
+                    🛡️ Assign to Security Guard
+                  </button>
+                  {incident.status !== 'rejected' && (
+                    <button
+                      onClick={() => handleUpdateStatus('rejected')}
+                      disabled={updatingStatus}
+                      style={{ 
+                        width: '100%', 
+                        padding: '12px', 
+                        borderRadius: '10px', 
+                        background: 'rgba(239, 68, 68, 0.1)', 
+                        color: '#ef4444', 
+                        border: '1px solid rgba(239, 68, 68, 0.2)', 
+                        cursor: 'pointer', 
+                        fontWeight: 600, 
+                        fontSize: '0.85rem' 
+                      }}
+                    >
+                      {updatingStatus ? 'Rejecting...' : '🚫 Reject Incident'}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 

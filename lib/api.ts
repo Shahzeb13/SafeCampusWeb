@@ -61,8 +61,8 @@ export const sos = {
   getActive: () => {
     return apiRequest<any>("/sos/active", "GET");
   },
-  updateStatus: (id: string, status: string) => {
-    return apiRequest<any>(`/sos/${id}/status`, "PATCH", { status });
+  updateStatus: (id: string, status: string, rejectionReason?: string) => {
+    return apiRequest<any>(`/sos/${id}/status`, "PATCH", { status, rejectionReason });
   },
   getById: (id: string) => {
     return apiRequest<any>(`/sos/${id}`, "GET");
@@ -83,8 +83,8 @@ export const incidents = {
   getById: (id: string) => {
     return apiRequest<any>(`/incidents/${id}`, "GET");
   },
-  updateStatus: (incidentId: string, status: string) => {
-    return apiRequest<any>("/incidents/update-status", "POST", { incidentId, status });
+  updateStatus: (incidentId: string, status: string, rejectionReason?: string) => {
+    return apiRequest<any>("/incidents/update-status", "POST", { incidentId, status, rejectionReason });
   }
 };
 
