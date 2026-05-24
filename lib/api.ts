@@ -47,9 +47,50 @@ export const auth = {
 
 // Admin Users
 export const users = {
+  getAll: () => {
+    return apiRequest<any>("/admin/users", "GET");
+  },
   create: (userData: any) => {
     // Requires admin role in JWT
     return apiRequest<any>("/admin/users", "POST", userData);
+  }
+};
+
+// Organizations
+export const organizations = {
+  getAll: () => {
+    return apiRequest<any>("/organizations", "GET");
+  },
+  getBySlug: (slug: string) => {
+    return apiRequest<any>(`/organizations/${slug}`, "GET");
+  },
+  create: (data: any) => {
+    return apiRequest<any>("/organizations", "POST", data);
+  },
+  update: (id: string, data: any) => {
+    return apiRequest<any>(`/organizations/${id}`, "PUT", data);
+  },
+  delete: (id: string) => {
+    return apiRequest<any>(`/organizations/${id}`, "DELETE");
+  }
+};
+
+// Campuses
+export const campuses = {
+  getAll: () => {
+    return apiRequest<any>("/campuses", "GET");
+  },
+  getById: (id: string) => {
+    return apiRequest<any>(`/campuses/${id}`, "GET");
+  },
+  create: (data: any) => {
+    return apiRequest<any>("/campuses", "POST", data);
+  },
+  update: (id: string, data: any) => {
+    return apiRequest<any>(`/campuses/${id}`, "PATCH", data);
+  },
+  delete: (id: string) => {
+    return apiRequest<any>(`/campuses/${id}`, "DELETE");
   }
 };
 
@@ -116,4 +157,11 @@ export const incidentAssignment = {
   assign: (incidentId: string, guardId: string) => {
     return apiRequest<any>("/incidents/assign", "POST", { incidentId, guardId });
   },
+};
+
+// Landing Page Leads
+export const landing = {
+  submitContact: (data: { name: string; email: string; institution: string; message: string }) => {
+    return apiRequest<any>("/landing/contact", "POST", data);
+  }
 };

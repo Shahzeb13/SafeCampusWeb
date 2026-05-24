@@ -17,8 +17,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const checkAuth = async () => {
       try {
         const profile = await auth.getProfile();
-        if (profile.role !== 'admin') {
-          throw new Error('Not an admin');
+        if (profile.role !== 'campus_admin' && profile.role !== 'super_admin') {
+          throw new Error('Not authorized to access the Admin Command Center');
         }
         setUser(profile);
       } catch (err) {
@@ -31,19 +31,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     checkAuth();
   }, [router]);
 
-  const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
-    { name: 'Incidents', path: '/dashboard/incidents', icon: <AlertTriangleIcon /> },
-    { name: 'SOS Alerts', path: '/dashboard/sos', icon: <SOSIcon /> },
-    { name: 'Live Map', path: '/dashboard/map-demo', icon: <MapIcon /> },
-    { name: 'Live CCTV', path: '/dashboard/cctv', icon: <CameraIcon /> },
-    { name: 'Face Scan', path: '/dashboard/facial-recognition', icon: <FaceIcon /> },
-    { name: 'Emergency Contacts', path: '/dashboard/emergency-contacts', icon: <PhoneCallIcon /> },
-    { name: 'Security Guards', path: '/dashboard/security-guards', icon: <ShieldGuardIcon /> },
-    { name: 'Messages', path: '/dashboard/messages', icon: <ChatIcon /> },
-    { name: 'Manage Users', path: '/dashboard/users', icon: <UsersIcon /> },
+  useEffect(() => {
+    if (user && user.role === 'super_admin' && pathname === '/dashboard') {
+      router.push('/dashboard/superAdmin');
+    }
+  }, [user, pathname, router]);
+
+  const isSuperAdmin = user?.role === 'super_admin';
+
+  const superAdminNavItems = [
+    { name: 'Dashboard', path: '/dashboard/superAdmin', icon: <DashboardIcon /> },
+    { name: 'Organizations', path: '/dashboard/superAdmin/organizations', icon: <BuildingIcon /> },
+    { name: 'Campuses', path: '/dashboard/superAdmin/campuses', icon: <MapPinIcon /> },
+    { name: 'Users', path: '/dashboard/superAdmin/users', icon: <UsersIcon /> },
+    { name: 'System Health', path: '/dashboard/superAdmin/system-health', icon: <ActivityIcon /> },
+    { name: 'Audit Logs', path: '/dashboard/superAdmin/audit-logs', icon: <FileTextIcon /> },
+    { name: 'Settings', path: '/dashboard/superAdmin/settings', icon: <SettingsIcon /> },
   ];
 
+  const campusAdminNavItems = [
+    { name: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
+    { name: 'Incidents', path: '/dashboard/admin/incidents', icon: <AlertTriangleIcon /> },
+    { name: 'SOS Alerts', path: '/dashboard/admin/sos', icon: <SOSIcon /> },
+    { name: 'Live Map', path: '/dashboard/admin/map-demo', icon: <MapIcon /> },
+    { name: 'Live CCTV', path: '/dashboard/admin/cctv', icon: <CameraIcon /> },
+    { name: 'Face Scan', path: '/dashboard/admin/facial-recognition', icon: <FaceIcon /> },
+    { name: 'Emergency Contacts', path: '/dashboard/admin/emergency-contacts', icon: <PhoneCallIcon /> },
+    { name: 'Security Guards', path: '/dashboard/admin/security-guards', icon: <ShieldGuardIcon /> },
+    { name: 'Messages', path: '/dashboard/admin/messages', icon: <ChatIcon /> },
+    { name: 'Manage Users', path: '/dashboard/admin/users', icon: <UsersIcon /> },
+  ];
+
+  const navItems = isSuperAdmin ? superAdminNavItems : campusAdminNavItems;
 
   const handleLogout = async () => {
     try {
@@ -55,7 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#09090b', color: '#fff' }}>Loading Admin Panel...</div>;
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#fafafa', color: '#09090b', fontFamily: 'sans-serif', fontWeight: 600 }}>Loading Command Center...</div>;
   }
 
   return (
@@ -68,34 +87,45 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           <div className={styles.brandText}>
             <span className={styles.brandTitle}>SafeCampus</span>
-            <span className={styles.brandSubtitle}>Admin Portal</span>
+            <span className={styles.brandSubtitle}>Security through clarity</span>
           </div>
         </div>
 
         <nav className={styles.navMenu}>
-          {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              href={item.path}
-              className={`${styles.navItem} ${pathname === item.path ? styles.navItemActive : ''}`}
-            >
-              {item.icon}
-              {item.name}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+              const isActive = item.path === '/dashboard' || item.path === '/dashboard/superAdmin'
+                ? pathname === item.path
+                : pathname.startsWith(item.path);
+              return (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
+                >
+                  {item.icon}
+                  {item.name}
+                </Link>
+              );
+            })}
         </nav>
         
-        <div style={{ marginTop: 'auto', padding: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', color: '#a1a1aa' }}>
+        <div style={{ marginTop: 'auto', padding: '1.5rem', borderTop: '1px solid #e4e4e7' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', color: '#71717a' }}>
              <ShieldUserIcon />
              <div style={{ display: 'flex', flexDirection: 'column' }}>
-               <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#fff' }}>{user?.username}</span>
-               <span style={{ fontSize: '0.75rem' }}>Administrator</span>
+               <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#09090b' }}>{user?.username}</span>
+               <span style={{ fontSize: '0.75rem', color: '#71717a' }}>{isSuperAdmin ? 'Platform Admin' : 'Campus Admin'}</span>
              </div>
           </div>
-          <button onClick={handleLogout} className={styles.navItem} style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}>
-            Logout
-          </button>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <Link href="#" className={styles.navItem} style={{ padding: '8px 12px', fontSize: '0.8rem' }}>
+              <SupportIcon /> Support
+            </Link>
+            <button onClick={handleLogout} className={styles.navItem} style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '8px 12px', fontSize: '0.8rem' }}>
+              <SignOutIcon /> Sign Out
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -200,5 +230,61 @@ const ShieldGuardIcon = () => (
 const ChatIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>
+);
+
+const BuildingIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+    <line x1="9" y1="22" x2="9" y2="16" />
+    <line x1="15" y1="22" x2="15" y2="16" />
+    <line x1="9" y1="16" x2="15" y2="16" />
+    <path d="M8 6h2v2H8V6zm0 4h2v2H8v-2zm8-4h-2v2h2V6zm-2 4h2v2h-2v-2z" />
+  </svg>
+);
+
+const MapPinIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+    <circle cx="12" cy="10" r="3" />
+  </svg>
+);
+
+const ActivityIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+  </svg>
+);
+
+const FileTextIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+    <polyline points="10 9 9 9 8 9" />
+  </svg>
+);
+
+const SettingsIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+  </svg>
+);
+
+const SupportIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+    <line x1="12" y1="17" x2="12.01" y2="17" />
+  </svg>
+);
+
+const SignOutIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
   </svg>
 );

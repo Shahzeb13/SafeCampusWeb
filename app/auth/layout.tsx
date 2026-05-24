@@ -1,79 +1,90 @@
 import React from 'react';
 import styles from './auth.module.css';
-import Image from 'next/image';
 
 const ShieldIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#fff' }}>
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
   </svg>
 );
 
-const EyeOffIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400">
-    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-    <line x1="1" y1="1" x2="23" y2="23" />
+const ShieldCheckIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <polyline points="9 12 11 14 15 10" />
   </svg>
 );
 
-const AlertTriangleIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-400">
-    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-    <line x1="12" y1="9" x2="12" y2="13" />
-    <line x1="12" y1="17" x2="12.01" y2="17" />
+const MapPinIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+    <circle cx="12" cy="10" r="3" />
+  </svg>
+);
+
+const ActivityIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
   </svg>
 );
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={styles.container}>
+      {/* LEFT — Brand Panel */}
       <div className={styles.leftSection}>
+        {/* Brand Mark */}
         <div className={styles.logoWrapper}>
-          <div className={styles.logoGlow} />
-          <Image 
-            src="/logo.png" 
-            alt="SafeCampus Logo" 
-            width={180} 
-            height={180} 
-            className={styles.logo}
-            priority
-          />
+          <div className={styles.logoGlow}>
+            <ShieldIcon />
+          </div>
+          <div className={styles.brandWordmark}>
+            <h2 className={styles.brandName}>SafeCampus<span className={styles.brandDot}>.</span></h2>
+            <span className={styles.brandTag}>Admin Command Center</span>
+          </div>
         </div>
-        
-        <h1 className={styles.brandName}>
-          SafeCampus<span className={styles.brandDot}>.</span>
-        </h1>
-        
-        <p className={styles.slogan}>We Guard What Matters Most</p>
-        
+
+        {/* Hero Headline */}
+        <div className={styles.heroBlock}>
+          <h1 className={styles.slogan}>
+            Security through<br />Clarity.
+          </h1>
+          <p className={styles.sloganSub}>
+            A unified platform for managing campus security, incidents, and real-time coordination across your entire organization.
+          </p>
+        </div>
+
+        {/* Stats */}
         <div className={styles.statsGrid}>
-          <div className={statCardWithStyles(styles.statCard)}>
-            <div className={styles.statIcon}><ShieldIcon/></div>
-            <span className={styles.statValue}>1.2M+</span>
-            <span className={styles.statLabel}>Active Firewalls</span>
-          </div>
-          
           <div className={styles.statCard}>
-            <div className={styles.statIcon}><EyeOffIcon/></div>
-            <span className={styles.statValue}>450</span>
-            <span className={styles.statLabel}>Protected Accounts</span>
+            <div className={styles.statIcon}>
+              <MapPinIcon />
+            </div>
+            <span className={styles.statValue}>24</span>
+            <span className={styles.statLabel}>Active Campuses</span>
           </div>
-          
+
           <div className={styles.statCard}>
-            <div className={styles.statIcon}><AlertTriangleIcon/></div>
-            <span className={styles.statValue}>34</span>
-            <span className={styles.statLabel}>Threats Blocked Today</span>
+            <div className={styles.statIcon}>
+              <ShieldCheckIcon />
+            </div>
+            <span className={styles.statValue}>8.4k+</span>
+            <span className={styles.statLabel}>Protected Users</span>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>
+              <ActivityIcon />
+            </div>
+            <span className={styles.statValue}>99.9%</span>
+            <span className={styles.statLabel}>System Uptime</span>
           </div>
         </div>
       </div>
-      
+
+      {/* RIGHT — Form Panel */}
       <div className={styles.rightSection}>
         {children}
       </div>
     </div>
   );
-}
-
-// Helper to handle multiple classes if needed, though not strictly required here
-function statCardWithStyles(className: string) {
-    return className;
 }
