@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { auth } from '@/lib/api';
 import EmergencyAlertSystem from '@/components/EmergencyAlertSystem';
+import Loading from './loading';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -73,70 +74,74 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   };
 
-  if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#fafafa', color: '#09090b', fontFamily: 'sans-serif', fontWeight: 600 }}>Loading Command Center...</div>;
-  }
 
   return (
-    <div className={styles.dashboardContainer}>
-      {/* Sidebar */}
-      <aside className={styles.sidebar}>
-        <div className={styles.brand}>
-          <div className={styles.logoIcon}>
-            <ShieldIcon />
+    <>
+      {loading && <Loading />}
+      
+      <div 
+        className={styles.dashboardContainer} 
+        style={{ display: loading ? 'none' : 'flex' }}
+      >
+        {/* Sidebar */}
+        <aside className={styles.sidebar}>
+          <div className={styles.brand}>
+            <div className={styles.logoIcon}>
+              <ShieldIcon />
+            </div>
+            <div className={styles.brandText}>
+              <span className={styles.brandTitle}>SafeCampus</span>
+              <span className={styles.brandSubtitle}>Security through clarity</span>
+            </div> 
           </div>
-          <div className={styles.brandText}>
-            <span className={styles.brandTitle}>SafeCampus</span>
-            <span className={styles.brandSubtitle}>Security through clarity</span>
-          </div>
-        </div>
 
-        <nav className={styles.navMenu}>
-          {navItems.map((item) => {
-              const isActive = item.path === '/dashboard' || item.path === '/dashboard/superAdmin'
-                ? pathname === item.path
-                : pathname.startsWith(item.path);
-              return (
-                <Link
-                  key={item.path}
-                  href={item.path}
-                  className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
-                >
-                  {item.icon}
-                  {item.name}
-                </Link>
-              );
-            })}
-        </nav>
-        
-        <div style={{ marginTop: 'auto', padding: '1.5rem', borderTop: '1px solid #e4e4e7' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', color: '#71717a' }}>
-             <ShieldUserIcon />
-             <div style={{ display: 'flex', flexDirection: 'column' }}>
-               <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#09090b' }}>{user?.username}</span>
-               <span style={{ fontSize: '0.75rem', color: '#71717a' }}>{isSuperAdmin ? 'Platform Admin' : 'Campus Admin'}</span>
-             </div>
-          </div>
+          <nav className={styles.navMenu}>
+            {navItems.map((item) => {
+                const isActive = item.path === '/dashboard' || item.path === '/dashboard/superAdmin'
+                  ? pathname === item.path
+                  : pathname.startsWith(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    href={item.path}
+                    className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
+                  >
+                    {item.icon}
+                    {item.name}
+                  </Link>
+                );
+              })}
+          </nav>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <Link href="#" className={styles.navItem} style={{ padding: '8px 12px', fontSize: '0.8rem' }}>
-              <SupportIcon /> Support
-            </Link>
-            <button onClick={handleLogout} className={styles.navItem} style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '8px 12px', fontSize: '0.8rem' }}>
-              <SignOutIcon /> Sign Out
-            </button>
+          <div style={{ marginTop: 'auto', padding: '1.5rem', borderTop: '1px solid #e4e4e7' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', color: '#71717a' }}>
+               <ShieldUserIcon />
+               <div style={{ display: 'flex', flexDirection: 'column' }}>
+                 <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#09090b' }}>{user?.username}</span>
+                 <span style={{ fontSize: '0.75rem', color: '#71717a' }}>{isSuperAdmin ? 'Platform Admin' : 'Campus Admin'}</span>
+               </div>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <Link href="#" className={styles.navItem} style={{ padding: '8px 12px', fontSize: '0.8rem' }}>
+                <SupportIcon /> Support
+              </Link>
+              <button onClick={handleLogout} className={styles.navItem} style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '8px 12px', fontSize: '0.8rem' }}>
+                <SignOutIcon /> Sign Out
+              </button>
+            </div>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      {/* Main Content Area (Outlet) */}
-      <main className={styles.mainContent}>
-        {children}
-      </main>
+        {/* Main Content Area (Outlet) */}
+        <main className={styles.mainContent}>
+          {children}
+        </main>
 
-      {/* Global Emergency Listener */}
-      <EmergencyAlertSystem />
-    </div>
+        {/* Global Emergency Listener */}
+        <EmergencyAlertSystem />
+      </div>
+    </>
   );
 }
 
