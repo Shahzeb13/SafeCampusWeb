@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { organizations } from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -24,9 +24,11 @@ const TrashIcon = () => (
 );
 
 // ─── Page ──────────────────────────────────────────────────────────────────
-export default function OrganizationDetailsPage({ params }: { params: { slug: string } }) {
+export default function OrganizationDetailsPage() {
   const router = useRouter();
-  
+  const params = useParams();
+  console.log(params);
+  const slug = params.slug;
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -42,7 +44,7 @@ export default function OrganizationDetailsPage({ params }: { params: { slug: st
   useEffect(() => {
     const fetchOrg = async () => {
       try {
-        const res = await organizations.getBySlug(params.slug);
+        const res = await organizations.getBySlug(slug);
         const org = res.data;
         if (!org) {
           toast.error('Organization not found');

@@ -1,3 +1,5 @@
+import { ParamValue } from "next/dist/server/request/params";
+
 const BASE_URL = "http://localhost:4000/api";
 
 /**
@@ -61,7 +63,7 @@ export const organizations = {
   getAll: () => {
     return apiRequest<any>("/organizations", "GET");
   },
-  getBySlug: (slug: string) => {
+  getBySlug: (slug: ParamValue) => {
     return apiRequest<any>(`/organizations/${slug}`, "GET");
   },
   create: (data: any) => {
