@@ -8,19 +8,21 @@ export default function EmergencyAlertSystem() {
   const lastProcessedId = useRef<string | null>(null);
   const chimeRef = useRef<HTMLAudioElement | null>(null);
 
+
+  //instead of polling use websockets or reactquery oir SWR of real time allerts
+
   useEffect(() => {
     // Check for emergencies every 5 seconds
-    const interval = setInterval(checkForEmergencies, 5000);
+    const interval = setInterval(checkForEmergencies, 60000);
     return () => clearInterval(interval);
   }, []);
 
   const checkForEmergencies = async () => {
     try {
-      const res = await sos.getAll();
+      const res = await sos.getActive();
       if (res.success && Array.isArray(res.data)) {
         // Find the most recent active SOS
-        const activeSos = res.data.find((s: any) => s.status === 'active');
-        
+         const activeSos = res.data.length > 0 ? res.data[0] : null;
         if (activeSos) {
           if (activeSos._id !== lastProcessedId.current) {
             lastProcessedId.current = activeSos._id;

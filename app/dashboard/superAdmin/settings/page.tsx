@@ -1,74 +1,78 @@
 'use client';
 
 import React from 'react';
-import { Settings, Shield, Bell, Globe, Lock, Save } from 'lucide-react';
+import { Shield, Globe, Save } from 'lucide-react';
 
 export default function SettingsPage() {
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-12 animate-in fade-in duration-500">
-      <header className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">System Settings</h1>
-        <p className="text-slate-500 font-medium">Configure global platform behavior and security</p>
-      </header>
+    <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', background: '#fafafa' }}>
+      <div style={{ padding: '32px 36px 20px', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#09090b', margin: 0, letterSpacing: '-0.03em' }}>System Settings</h1>
+          <p style={{ fontSize: '0.875rem', color: '#71717a', marginTop: 4, marginBottom: 0 }}>Configure global platform behavior and security</p>
+        </div>
+      </div>
 
-      <div className="space-y-8">
-        <section className="space-y-6">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Shield size={20} className="text-slate-400" />
-            <h2 className="text-lg font-bold text-slate-900">Global Security</h2>
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
-              <div>
-                <p className="font-bold text-slate-900">Two-Factor Authentication</p>
-                <p className="text-xs text-slate-500">Enforce 2FA for all administrative accounts</p>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 36px 36px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 32, maxWidth: 800 }}>
+          
+          <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', itemsCenter: 'center', gap: 8, paddingBottom: 12, borderBottom: '1px solid #e4e4e7' }}>
+              <Shield size={20} color="#9ca3af" />
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 800, color: '#09090b', margin: 0 }}>Global Security</h2>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', background: '#fff', border: '1px solid #e4e4e7', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: '#09090b' }}>Two-Factor Authentication</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#71717a' }}>Enforce 2FA for all administrative accounts</p>
+                </div>
+                <div style={{ width: 44, height: 24, background: '#09090b', borderRadius: 999, position: 'relative', cursor: 'pointer' }}>
+                  <div style={{ position: 'absolute', right: 4, top: 4, width: 16, height: 16, background: '#fff', borderRadius: '50%' }} />
+                </div>
               </div>
-              <div className="w-12 h-6 bg-slate-900 rounded-full relative cursor-pointer">
-                <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full transition-all" />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', background: '#fff', border: '1px solid #e4e4e7', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.02)', opacity: 0.6 }}>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: '#09090b' }}>IP Whitelisting</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#71717a' }}>Restrict access to specific IP ranges</p>
+                </div>
+                <div style={{ width: 44, height: 24, background: '#e4e4e7', borderRadius: 999, position: 'relative', cursor: 'pointer' }}>
+                  <div style={{ position: 'absolute', left: 4, top: 4, width: 16, height: 16, background: '#fff', borderRadius: '50%' }} />
+                </div>
               </div>
             </div>
-            <div className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl shadow-sm opacity-60">
-              <div>
-                <p className="font-bold text-slate-900">IP Whitelisting</p>
-                <p className="text-xs text-slate-500">Restrict access to specific IP ranges</p>
+          </section>
+
+          <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', itemsCenter: 'center', gap: 8, paddingBottom: 12, borderBottom: '1px solid #e4e4e7' }}>
+              <Globe size={20} color="#9ca3af" />
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 800, color: '#09090b', margin: 0 }}>Platform Registration</h2>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div style={{ padding: '20px 24px', background: '#fff', border: '1px solid #e4e4e7', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: '#09090b' }}>Allow New Organizations</p>
+                <p style={{ margin: '4px 0 16px', fontSize: '0.75rem', color: '#71717a' }}>Enable the public signup flow for new entities</p>
+                <select style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #e4e4e7', borderRadius: 8, fontSize: '0.875rem', color: '#09090b', outline: 'none' }}>
+                  <option>Always Allowed</option>
+                  <option>Invitation Only</option>
+                  <option>Disabled</option>
+                </select>
               </div>
-              <div className="w-12 h-6 bg-slate-200 rounded-full relative cursor-pointer">
-                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-all" />
+              <div style={{ padding: '20px 24px', background: '#fff', border: '1px solid #e4e4e7', borderRadius: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: '#09090b' }}>Default Trial Period</p>
+                <p style={{ margin: '4px 0 16px', fontSize: '0.75rem', color: '#71717a' }}>Set the default duration for new organization trials</p>
+                <input type="number" defaultValue={14} style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #e4e4e7', borderRadius: 8, fontSize: '0.875rem', color: '#09090b', outline: 'none' }} />
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="space-y-6">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Globe size={20} className="text-slate-400" />
-            <h2 className="text-lg font-bold text-slate-900">Platform Registration</h2>
+          <div style={{ paddingTop: 32, borderTop: '1px solid #e4e4e7', display: 'flex', justifyContent: 'flex-end' }}>
+            <button style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', background: '#09090b', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer' }}>
+              <Save size={16} />
+              Save Changes
+            </button>
           </div>
-          <div className="space-y-4 text-sm">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <div className="p-4 bg-slate-50 rounded-2xl space-y-2">
-                 <p className="font-bold text-slate-900">Allow New Organizations</p>
-                 <p className="text-xs text-slate-500">Enable the public signup flow for new entities</p>
-                 <select className="w-full mt-2 bg-white border border-slate-200 rounded-lg p-2 text-xs font-semibold">
-                   <option>Always Allowed</option>
-                   <option>Invitation Only</option>
-                   <option>Disabled</option>
-                 </select>
-               </div>
-               <div className="p-4 bg-slate-50 rounded-2xl space-y-2">
-                 <p className="font-bold text-slate-900">Default Trial Period</p>
-                 <p className="text-xs text-slate-500">Set the default duration for new organization trials</p>
-                 <input type="number" defaultValue={14} className="w-full mt-2 bg-white border border-slate-200 rounded-lg p-2 text-xs font-semibold" />
-               </div>
-             </div>
-          </div>
-        </section>
 
-        <div className="pt-8 border-t border-slate-100 flex justify-end">
-           <button className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-900/10">
-            <Save size={18} />
-            Save Changes
-          </button>
         </div>
       </div>
     </div>

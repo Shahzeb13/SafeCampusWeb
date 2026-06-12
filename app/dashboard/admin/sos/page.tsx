@@ -28,7 +28,7 @@ export default function SOSPage() {
     fetchGuards();
     const interval = setInterval(() => {
       fetchSOS(false);
-    }, 5000);
+    }, 100000);
     return () => clearInterval(interval);
   }, []);
 

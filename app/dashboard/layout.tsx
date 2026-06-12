@@ -18,13 +18,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const checkAuth = async () => {
       try {
         const profile = await auth.getProfile();
-        if (profile.role !== 'campus_admin' && profile.role !== 'super_admin') {
-          throw new Error('Not authorized to access the Admin Command Center');
+        if(profile.role === "super_admin" && pathname === "/dashboard"){
+          router.replace("/dashboard/superAdmin")
+        }
+        else if(profile.role === "organization_owner" && pathname === "/dashboard"){
+          router.replace("/dashboard/orgOwner")
         }
         setUser(profile);
       } catch (err) {
         console.error("Auth check failed:", err);
-        router.push('/auth/login');
+        router.replace('/auth/login');
       } finally {
         setLoading(false);
       }
@@ -32,13 +35,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     checkAuth();
   }, [router]);
 
-  useEffect(() => {
-    if (user && user.role === 'super_admin' && pathname === '/dashboard') {
-      router.push('/dashboard/superAdmin');
-    }
-  }, [user, pathname, router]);
+
 
   const isSuperAdmin = user?.role === 'super_admin';
+  const isOrgOwner = user?.role === 'organization_owner';
 
   const superAdminNavItems = [
     { name: 'Dashboard', path: '/dashboard/superAdmin', icon: <DashboardIcon /> },
@@ -63,12 +63,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Manage Users', path: '/dashboard/admin/users', icon: <UsersIcon /> },
   ];
 
-  const navItems = isSuperAdmin ? superAdminNavItems : campusAdminNavItems;
+  const orgOwnerNavItems = [
+    { name: 'Dashboard', path: '/dashboard/orgOwner', icon: <DashboardIcon /> },
+    { name: 'Campuses', path: '/dashboard/orgOwner/campuses', icon: <MapPinIcon /> },
+    { name: 'Users', path: '/dashboard/orgOwner/users', icon: <UsersIcon /> },
+    { name: 'Settings', path: '/dashboard/orgOwner/settings', icon: <SettingsIcon /> },
+  ];
+
+  let navItems = campusAdminNavItems;
+  if (isSuperAdmin) {
+    navItems = superAdminNavItems;
+  } else if (isOrgOwner) {
+    navItems = orgOwnerNavItems;
+  }
 
   const handleLogout = async () => {
     try {
       await auth.logout();
-      router.push('/auth/login');
+      router.replace('/auth/login');
     } catch (err) {
       console.error("Logout failed:", err);
     }
@@ -97,7 +109,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <nav className={styles.navMenu}>
             {navItems.map((item) => {
-                const isActive = item.path === '/dashboard' || item.path === '/dashboard/superAdmin'
+                const isActive = item.path === '/dashboard' || item.path === '/dashboard/superAdmin' || item.path === '/dashboard/orgOwner'
                   ? pathname === item.path
                   : pathname.startsWith(item.path);
                 return (
@@ -118,7 +130,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                <ShieldUserIcon />
                <div style={{ display: 'flex', flexDirection: 'column' }}>
                  <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#09090b' }}>{user?.username}</span>
-                 <span style={{ fontSize: '0.75rem', color: '#71717a' }}>{isSuperAdmin ? 'Platform Admin' : 'Campus Admin'}</span>
+                 <span style={{ fontSize: '0.75rem', color: '#71717a' }}>{isSuperAdmin ? 'Platform Admin' : isOrgOwner ? 'Organization Owner' : 'Campus Admin'}</span>
                </div>
             </div>
             

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { organizations } from '@/lib/api';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
 
 // ─── Icons ─────────────────────────────────────────────────────────────────
 const MoreIcon = () => (
@@ -356,9 +357,9 @@ export default function OrganizationsPage() {
                             </span>
                           </td>
                           <td style={{ padding: '16px 12px', textAlign: 'right' }}>
-                            <a href={`/dashboard/superAdmin/organizations/${org.slug}`} style={{ background: 'none', border: '1px solid #e4e4e7', cursor: 'pointer', color: '#09090b', padding: '6px 12px', borderRadius: 6, display: 'inline-flex', alignItems: 'center', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s' }}>
+                            <Link href={`/dashboard/superAdmin/organizations/${org.slug}`} style={{ background: 'none', border: '1px solid #e4e4e7', cursor: 'pointer', color: '#09090b', padding: '6px 12px', borderRadius: 6, display: 'inline-flex', alignItems: 'center', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s' }}>
                               Manage
-                            </a>
+                            </Link>
                           </td>
                         </tr>
                       );

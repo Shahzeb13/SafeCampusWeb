@@ -3,6 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { campuses, organizations } from '@/lib/api';
 import toast from 'react-hot-toast';
+import dynamic from 'next/dynamic';
+
+const LocationPickerMap = dynamic(() => import('@/components/LocationPickerMap'), {
+  ssr: false,
+  loading: () => <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f4f4f5', color: '#71717a' }}>Loading Map...</div>
+});
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const PlusIcon = () => (
@@ -89,8 +95,8 @@ export default function CampusesPage() {
       const payload = {
         ...form,
         location: {
-          lat: parseFloat(latInput) || 0,
-          lng: parseFloat(lngInput) || 0,
+          latitude: parseFloat(latInput) || 0,
+          longitude: parseFloat(lngInput) || 0,
         }
       };
       await campuses.create(payload);
@@ -243,46 +249,28 @@ export default function CampusesPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Map Card */}
             <div style={{
-              borderRadius: 14, overflow: 'hidden', position: 'relative', height: 240,
-              background: 'linear-gradient(135deg, #b8cce4 0%, #8fafc4 30%, #6d9bb5 60%, #4d7a98 100%)',
+              borderRadius: 14, overflow: 'hidden', position: 'relative', height: 280,
+              background: '#e4e4e7',
               border: '1px solid #e4e4e7', boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+              zIndex: 1, // Fix leaflet z-index spilling
             }}>
-              {/* Faux building grid overlay */}
-              <div style={{ position: 'absolute', inset: 0, opacity: 0.5 }}>
-                <svg width="100%" height="100%" viewBox="0 0 500 240" preserveAspectRatio="none">
-                  <g fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" strokeWidth="1">
-                    <rect x="60" y="40" width="120" height="160" rx="2" />
-                    <rect x="200" y="60" width="80" height="140" rx="2" />
-                    <rect x="300" y="30" width="160" height="180" rx="2" />
-                    <rect x="30" y="80" width="20" height="120" rx="1" />
-                    <rect x="55" y="180" width="130" height="30" rx="1" />
-                  </g>
-                </svg>
-              </div>
-
+              <LocationPickerMap 
+                lat={parseFloat(latInput) || 0} 
+                lng={parseFloat(lngInput) || 0} 
+                onLocationSelect={(lat, lng) => {
+                  setLatInput(lat.toFixed(6));
+                  setLngInput(lng.toFixed(6));
+                }} 
+              />
               {/* Map overlay badge */}
               <div style={{
-                position: 'absolute', bottom: 14, left: 14,
+                position: 'absolute', bottom: 14, left: 14, zIndex: 1000,
                 background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(10px)',
                 borderRadius: 6, padding: '5px 12px',
                 fontSize: '0.72rem', fontWeight: 700, color: '#fff',
-                letterSpacing: '0.08em', textTransform: 'uppercase',
+                letterSpacing: '0.08em', textTransform: 'uppercase', pointerEvents: 'none'
               }}>
-                MAP_OVERLAY_ACTIVE
-              </div>
-
-              {/* Map controls */}
-              <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {[<ZoomInIcon key="z" />, <LayersIcon key="l" />].map((icon, i) => (
-                  <button key={i} style={{
-                    width: 32, height: 32, background: 'rgba(255,255,255,0.9)',
-                    border: '1px solid rgba(0,0,0,0.1)', borderRadius: 7, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#27272a',
-                    backdropFilter: 'blur(8px)', transition: 'all 0.2s',
-                  }}>
-                    {icon}
-                  </button>
-                ))}
+                CLICK MAP TO SELECT LOCATION
               </div>
             </div>
 

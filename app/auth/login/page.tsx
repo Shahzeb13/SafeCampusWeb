@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 import styles from '../auth.module.css';
 import { auth } from '@/lib/api';
@@ -34,11 +35,22 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      await auth.login(formData);
+      const response = await auth.login(formData);
+      if(response){
+        console.log("response exists !")
+      }
       toast.success('Successfully logged in!');
-      router.push('/dashboard');
+      const role = response?.role;
+      console.log(role);
+      console.log(role === "super_admin");
+      if (role === 'super_admin') {
+        router.replace('/dashboard/superAdmin');
+      } else if (role === 'organization_owner') {
+        router.replace('/dashboard/orgOwner');
+      } else {
+        router.replace('/auth/login');
+      }
     } catch (err: any) {
       toast.error(err.message || 'Login failed. Please try again.');
     } finally {
@@ -50,17 +62,19 @@ export default function LoginPage() {
     <div className={styles.formCard}>
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
-        <div style={{
-          width: '44px',
-          height: '44px',
-          background: '#f4f4f5',
-          borderRadius: '10px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '20px',
-          color: '#09090b'
-        }}>
+        <div
+          style={{
+            width: '44px',
+            height: '44px',
+            background: '#f4f4f5',
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '20px',
+            color: '#09090b',
+          }}
+        >
           <ShieldIcon />
         </div>
         <h1>Welcome back</h1>
@@ -71,7 +85,9 @@ export default function LoginPage() {
         <div className={styles.formGroup}>
           <label className={styles.label}>Email address</label>
           <div className={styles.inputWrapper}>
-            <span className={styles.inputIcon}><MailIcon /></span>
+            <span className={styles.inputIcon}>
+              <MailIcon />
+            </span>
             <input
               type="email"
               id="email"
@@ -87,13 +103,20 @@ export default function LoginPage() {
 
         <div className={styles.formGroup}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '7px' }}>
-            <label className={styles.label} style={{ margin: 0 }}>Password</label>
-            <a href="#" style={{ fontSize: '0.8rem', color: '#0052cc', textDecoration: 'none', fontWeight: 600 }}>
+            <label className={styles.label} style={{ margin: 0 }}>
+              Password
+            </label>
+            <Link
+              href="/auth/forgot-password"
+              style={{ fontSize: '0.8rem', color: '#0052cc', textDecoration: 'none', fontWeight: 600 }}
+            >
               Forgot password?
-            </a>
+            </Link>
           </div>
           <div className={styles.inputWrapper}>
-            <span className={styles.inputIcon}><LockIcon /></span>
+            <span className={styles.inputIcon}>
+              <LockIcon />
+            </span>
             <input
               type="password"
               id="password"
@@ -107,24 +130,21 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <button
-          id="login-submit"
-          type="submit"
-          className={styles.primaryButton}
-          disabled={loading}
-        >
+        <button id="login-submit" type="submit" className={styles.primaryButton} disabled={loading}>
           {loading ? 'Signing in...' : 'Sign in to Dashboard'}
         </button>
       </form>
 
       {/* Footer note */}
-      <p style={{
-        marginTop: '32px',
-        fontSize: '0.78rem',
-        color: '#9ca3af',
-        textAlign: 'center',
-        lineHeight: '1.6'
-      }}>
+      <p
+        style={{
+          marginTop: '32px',
+          fontSize: '0.78rem',
+          color: '#9ca3af',
+          textAlign: 'center',
+          lineHeight: '1.6',
+        }}
+      >
         Protected by SafeCampus enterprise security. <br />
         Unauthorized access is prohibited.
       </p>

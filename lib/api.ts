@@ -1,169 +1,182 @@
 import { ParamValue } from "next/dist/server/request/params";
+import axios from "axios";
 
 const BASE_URL = "http://localhost:4000/api";
 
 /**
- * A simple helper to call your backend APIs.
+ * A simple helper to call your backend APIs using Axios.
  */
-async function apiRequest<T>(endpoint: string, method: string = "GET", data?: any): Promise<T> {
+async function apiRequest(endpoint: string, method: string = "GET", data?: any): Promise<any> {
   const url = `${BASE_URL}${endpoint}`;
   
-  const options: RequestInit = {
-    method: method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    // This allows cookies to work
-    credentials: "include",
-  };
-
-  // If we have data, add it to the body
-  if (data) {
-    options.body = JSON.stringify(data);
+  try {
+    const response = await axios({
+      url: url,
+      method: method,
+      data: data, // Axios automatically stringifies this to JSON
+      withCredentials: true, // This allows cookies to work (like credentials: "include" in fetch)
+    });
+    
+    // Axios automatically parses the JSON response into response.data
+    return response.data;
+  } catch (error: any) {
+    // If the server returns an error (like 400 or 500), Axios throws an error.
+    // We try to get the message from the server response, otherwise fallback to standard error message.
+    throw new Error(error.response?.data?.message || error.message || "Api Error");
   }
-
-  const response = await fetch(url, options);
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(result.message || "Api Error");
-  }
-
-  return result as T;
 }
 
 // Simple Auth Functions
 export const auth = {
-  login: (credentials: any) => {
-    return apiRequest<any>("/auth/login", "POST", credentials);
+  forgotPassword: (email: string) => {
+    return apiRequest("/auth/forgot-password", "POST", { email });
+  },
+  resetPassword: (data: { email: string; otp: string; newPassword: string }) => {
+    return apiRequest("/auth/reset-password", "POST", data);
   },
   
+  login: (credentials: any) => {
+    return apiRequest("/auth/login", "POST", credentials);
+  },
   logout: () => {
-    return apiRequest<any>("/auth/logout", "POST");
+    return apiRequest("/auth/logout", "POST");
   },
   
   getProfile: () => {
-    return apiRequest<any>("/auth/profile", "GET");
+    return apiRequest("/auth/profile", "GET");
   }
 };
 
 // Admin Users
 export const users = {
   getAll: () => {
-    return apiRequest<any>("/admin/users", "GET");
+    return apiRequest("/admin/users", "GET");
   },
   create: (userData: any) => {
     // Requires admin role in JWT
-    return apiRequest<any>("/admin/users", "POST", userData);
+    return apiRequest("/admin/users", "POST", userData);
+  },
+  // Milestone 1 Endpoints
+  deleteOrgOwner: (data: any) => {
+    return apiRequest("/admin/super/org-owner", "DELETE", data);
+  },
+  createOrgOwner: (userData: any) => {
+    return apiRequest("/admin/super/org-owner", "POST", userData);
+  },
+  assignOrgOwner: (data: { userId: string, organizationId: string }) => {
+    return apiRequest("/admin/super/assign-org-owner", "POST", data);
+  },
+  createOrgUser: (userData: any) => {
+    return apiRequest("/admin/org/users", "POST", userData);
   }
 };
 
 // Organizations
 export const organizations = {
   getAll: () => {
-    return apiRequest<any>("/organizations", "GET");
+    return apiRequest("/organizations", "GET");
   },
   getBySlug: (slug: ParamValue) => {
-    return apiRequest<any>(`/organizations/${slug}`, "GET");
+    return apiRequest(`/organizations/${slug}`, "GET");
   },
   create: (data: any) => {
-    return apiRequest<any>("/organizations", "POST", data);
+    return apiRequest("/organizations", "POST", data);
   },
   update: (id: string, data: any) => {
-    return apiRequest<any>(`/organizations/${id}`, "PUT", data);
+    return apiRequest(`/organizations/${id}`, "PUT", data);
   },
   delete: (id: string) => {
-    return apiRequest<any>(`/organizations/${id}`, "DELETE");
+    return apiRequest(`/organizations/${id}`, "DELETE");
   }
 };
 
 // Campuses
 export const campuses = {
   getAll: () => {
-    return apiRequest<any>("/campuses", "GET");
+    return apiRequest("/campuses", "GET");
   },
   getById: (id: string) => {
-    return apiRequest<any>(`/campuses/${id}`, "GET");
+    return apiRequest(`/campuses/${id}`, "GET");
   },
   create: (data: any) => {
-    return apiRequest<any>("/campuses", "POST", data);
+    return apiRequest("/campuses", "POST", data);
   },
   update: (id: string, data: any) => {
-    return apiRequest<any>(`/campuses/${id}`, "PATCH", data);
+    return apiRequest(`/campuses/${id}`, "PATCH", data);
   },
   delete: (id: string) => {
-    return apiRequest<any>(`/campuses/${id}`, "DELETE");
+    return apiRequest(`/campuses/${id}`, "DELETE");
   }
 };
 
 // SOS System
 export const sos = {
   getAll: () => {
-    return apiRequest<any>("/sos/", "GET");
+    return apiRequest("/sos/", "GET");
   },
   getActive: () => {
-    return apiRequest<any>("/sos/active", "GET");
+    return apiRequest("/sos/active", "GET");
   },
   updateStatus: (id: string, status: string, rejectionReason?: string) => {
-    return apiRequest<any>(`/sos/${id}/status`, "PATCH", { status, rejectionReason });
+    return apiRequest(`/sos/${id}/status`, "PATCH", { status, rejectionReason });
   },
   getById: (id: string) => {
-    return apiRequest<any>(`/sos/${id}`, "GET");
+    return apiRequest(`/sos/${id}`, "GET");
   },
   assignGuard: (sosId: string, guardId: string) => {
-    return apiRequest<any>("/sos/assign", "POST", { sosId, guardId });
+    return apiRequest("/sos/assign", "POST", { sosId, guardId });
   }
 };
 
 // Incidents (We just added an admin global getAllIncidents route!)
 export const incidents = {
   getAll: (type?: string) => {
-    return apiRequest<any>(`/incidents${type ? `?type=${type}` : ''}`, "GET");
+    return apiRequest(`/incidents${type ? `?type=${type}` : ''}`, "GET");
   },
   getMyIncidents: () => {
-    return apiRequest<any>("/incidents/myIncidents", "GET");
+    return apiRequest("/incidents/myIncidents", "GET");
   },
   getById: (id: string) => {
-    return apiRequest<any>(`/incidents/${id}`, "GET");
+    return apiRequest(`/incidents/${id}`, "GET");
   },
   updateStatus: (incidentId: string, status: string, rejectionReason?: string) => {
-    return apiRequest<any>("/incidents/update-status", "POST", { incidentId, status, rejectionReason });
+    return apiRequest("/incidents/update-status", "POST", { incidentId, status, rejectionReason });
   }
 };
 
 // Emergency Contacts (Admin management)
 export const emergencyContacts = {
   getAll: () => {
-    return apiRequest<any>("/emergency-contacts", "GET");
+    return apiRequest("/emergency-contacts", "GET");
   },
   create: (data: any) => {
-    return apiRequest<any>("/emergency-contacts", "POST", data);
+    return apiRequest("/emergency-contacts", "POST", data);
   },
   update: (id: string, data: any) => {
-    return apiRequest<any>(`/emergency-contacts/${id}`, "PUT", data);
+    return apiRequest(`/emergency-contacts/${id}`, "PUT", data);
   },
   delete: (id: string) => {
-    return apiRequest<any>(`/emergency-contacts/${id}`, "DELETE");
+    return apiRequest(`/emergency-contacts/${id}`, "DELETE");
   }
 };
 
 // Security Personnel Management
 export const securityGuards = {
   getAll: () => {
-    return apiRequest<any>("/admin/security-personnel", "GET");
+    return apiRequest("/admin/security-personnel", "GET");
   },
 };
 
 // Incident Assignment
 export const incidentAssignment = {
   assign: (incidentId: string, guardId: string) => {
-    return apiRequest<any>("/incidents/assign", "POST", { incidentId, guardId });
+    return apiRequest("/incidents/assign", "POST", { incidentId, guardId });
   },
 };
 
 // Landing Page Leads
 export const landing = {
   submitContact: (data: { name: string; email: string; institution: string; message: string }) => {
-    return apiRequest<any>("/landing/contact", "POST", data);
+    return apiRequest("/landing/contact", "POST", data);
   }
 };
