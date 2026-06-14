@@ -68,6 +68,21 @@ export const users = {
   },
   createOrgUser: (userData: any) => {
     return apiRequest("/admin/org/users", "POST", userData);
+  },
+  createCampusAdmin: (userData: any) => {
+    return apiRequest("/admin/org-owner/create-campus-admin", "POST", userData);
+  },
+  assignCampusAdmin: (data: { userId: string; campusId: string }) => {
+    return apiRequest("/admin/org-owner/assign-campus-admin", "POST", data);
+  },
+  getCampusAdmins: () => {
+    return apiRequest("/admin/org-owner/get-campus-admins", "GET");
+  },
+  editCampusAdmin: (id: string, userData: any) => {
+    return apiRequest(`/admin/org-owner/edit-campus-admin/${id}`, "PATCH", userData);
+  },
+  deleteCampusAdmin: (id: string) => {
+    return apiRequest(`/admin/org-owner/delete-campus-admin/${id}`, "DELETE");
   }
 };
 

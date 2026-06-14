@@ -30,7 +30,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <Toaster position="top-center" toastOptions={{ style:{
-          zIndex: 999999
+          zIndex: 9999999
         }}} />
         {children}
       </body>

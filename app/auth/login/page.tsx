@@ -52,6 +52,7 @@ export default function LoginPage() {
         router.replace('/auth/login');
       }
     } catch (err: any) {
+      alert("login failed!")
       toast.error(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);

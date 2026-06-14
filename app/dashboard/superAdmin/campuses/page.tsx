@@ -63,6 +63,10 @@ export default function CampusesPage() {
   const [campusesList, setCampusesList] = useState<any[]>([]);
   const [orgsList, setOrgsList] = useState<any[]>([]);
 
+  // Modals state
+  const [editingCampus, setEditingCampus] = useState<any>(null);
+  const [deletingCampus, setDeletingCampus] = useState<any>(null);
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -110,6 +114,43 @@ export default function CampusesPage() {
       fetchData();
     } catch (error: any) {
       toast.error(error.message || 'Failed to create campus');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingCampus) return;
+    setSubmitting(true);
+    try {
+      await campuses.delete(deletingCampus._id);
+      toast.success("Campus deleted successfully!");
+      setDeletingCampus(null);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete campus");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const payload = {
+        name: editingCampus.name,
+        code: editingCampus.code,
+        city: editingCampus.city,
+        address: editingCampus.address,
+        location: editingCampus.location
+      };
+      await campuses.update(editingCampus._id, payload);
+      toast.success("Campus updated successfully!");
+      setEditingCampus(null);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update campus");
     } finally {
       setSubmitting(false);
     }
@@ -275,7 +316,7 @@ export default function CampusesPage() {
             </div>
 
             {/* Registered Campuses Table */}
-            <div style={{ background: '#fff', border: '1px solid #e4e4e7', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)', flex: 1 }}>
+            <div style={{ background: '#fff', border: '1px solid #e4e4e7', borderRadius: 14, overflow: 'visible', boxShadow: '0 1px 3px rgba(0,0,0,0.02)', flex: 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 22px', borderBottom: '1px solid #e4e4e7' }}>
                 <h2 style={{ fontSize: '0.9rem', fontWeight: 700, margin: 0, color: '#09090b' }}>Registered Campuses</h2>
                 <div style={{ position: 'relative' }}>
@@ -318,9 +359,10 @@ export default function CampusesPage() {
                           </span>
                         </td>
                         <td style={{ padding: '16px 12px', textAlign: 'right' }}>
-                          <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 4, borderRadius: 6, display: 'inline-flex', alignItems: 'center' }}>
-                            <MoreIcon />
-                          </button>
+                          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                            <button onClick={() => setEditingCampus(campus)} style={{ padding: '6px 14px', background: '#f4f4f5', border: '1px solid #e4e4e7', borderRadius: 6, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', color: '#09090b' }}>Edit</button>
+                            <button onClick={() => setDeletingCampus(campus)} style={{ padding: '6px 14px', background: '#fff0f0', border: '1px solid #fecaca', borderRadius: 6, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', color: '#dc2626' }}>Delete</button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -331,6 +373,77 @@ export default function CampusesPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {editingCampus && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 14, padding: '28px', width: '100%', maxWidth: 500, boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 24px' }}>Edit Campus</h2>
+            <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={labelStyle}>Campus Name</label>
+                <input style={inputStyle} value={editingCampus.name} required
+                  onChange={e => setEditingCampus({ ...editingCampus, name: e.target.value })}
+                  onFocus={focusIn} onBlur={focusOut} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>Campus Code</label>
+                  <input style={inputStyle} value={editingCampus.code} required
+                    onChange={e => setEditingCampus({ ...editingCampus, code: e.target.value })}
+                    onFocus={focusIn} onBlur={focusOut} />
+                </div>
+                <div>
+                  <label style={labelStyle}>City</label>
+                  <input style={inputStyle} value={editingCampus.city} required
+                    onChange={e => setEditingCampus({ ...editingCampus, city: e.target.value })}
+                    onFocus={focusIn} onBlur={focusOut} />
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>Physical Address</label>
+                <textarea style={{ ...inputStyle, resize: 'vertical', minHeight: 70 } as React.CSSProperties}
+                  value={editingCampus.address} required
+                  onChange={e => setEditingCampus({ ...editingCampus, address: e.target.value })}
+                  onFocus={focusIn} onBlur={focusOut} />
+              </div>
+              <div>
+                <label style={labelStyle}>Coordinates (Lat, Long)</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <input style={{ ...inputStyle, fontFamily: 'monospace' }} 
+                    value={editingCampus.location?.latitude || ''} required
+                    onChange={e => setEditingCampus({ ...editingCampus, location: { ...editingCampus.location, latitude: parseFloat(e.target.value) } })}
+                    onFocus={focusIn} onBlur={focusOut} />
+                  <input style={{ ...inputStyle, fontFamily: 'monospace' }} 
+                    value={editingCampus.location?.longitude || ''} required
+                    onChange={e => setEditingCampus({ ...editingCampus, location: { ...editingCampus.location, longitude: parseFloat(e.target.value) } })}
+                    onFocus={focusIn} onBlur={focusOut} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+                <button type="button" onClick={() => setEditingCampus(null)} style={{ flex: 1, padding: '12px', background: '#e4e4e7', color: '#09090b', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" disabled={submitting} style={{ flex: 1, padding: '12px', background: '#0052cc', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', opacity: submitting ? 0.7 : 1 }}>{submitting ? 'Saving...' : 'Save Changes'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingCampus && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 14, padding: '28px', width: '100%', maxWidth: 400, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', textAlign: 'center' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 12px', color: '#09090b' }}>Delete Campus?</h2>
+            <p style={{ color: '#71717a', fontSize: '0.9rem', marginBottom: 24, lineHeight: 1.5 }}>
+              Are you sure you want to delete <strong>{deletingCampus.name}</strong>? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={() => setDeletingCampus(null)} style={{ flex: 1, padding: '10px', background: '#e4e4e7', color: '#09090b', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleDelete} disabled={submitting} style={{ flex: 1, padding: '10px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', opacity: submitting ? 0.7 : 1 }}>{submitting ? 'Deleting...' : 'Yes, Delete'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

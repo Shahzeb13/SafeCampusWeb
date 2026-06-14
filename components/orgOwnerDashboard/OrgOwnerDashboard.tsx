@@ -234,19 +234,12 @@ export default async function OrgOwnerDashboard() {
                   <h2 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0, color: '#09090b' }}>Quick Actions</h2>
                 </div>
                 <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <Link href="/dashboard/orgOwner/campuses" style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    background: '#09090b', color: '#fff', borderRadius: 8, padding: '10px 14px',
-                    fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none', transition: 'background 0.2s'
-                  }}>
-                    <PlusIcon /> Add Campus
-                  </Link>
                   <Link href="/dashboard/orgOwner/users" style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    background: '#fff', color: '#09090b', border: '1px solid #e4e4e7', borderRadius: 8, padding: '10px 14px',
+                    background: '#09090b', color: '#fff', borderRadius: 8, padding: '10px 14px',
                     fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s'
                   }}>
-                    <UsersIcon /> Manage Users
+                    <UsersIcon /> Manage Campus Admins
                   </Link>
                   <Link href="/dashboard/orgOwner/settings" style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
