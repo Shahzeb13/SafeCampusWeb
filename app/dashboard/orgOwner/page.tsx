@@ -1,7 +1,21 @@
+
 import React, { Suspense } from 'react';
 import OrgOwnerDashboard from '@/components/orgOwnerDashboard/OrgOwnerDashboard';
 
 export default function OrgOwnerPage() {
+  
+
+
+  // useEffect(() => {
+  //     async function getLoggedInUserProfile(){
+  //       const loggedInUserProfile = await auth.getProfile();
+  //       console.log(loggedInUserProfile);
+
+  //     }
+      
+  //     getLoggedInUserProfile();
+  // } , [])
+
   return (
     <div style={{ width: '100%', height: '100%', overflowY: 'auto' }}>
       <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>

@@ -73,7 +73,7 @@ export default function Home() {
           </div>
 
           <div className={s.navActions}>
-            <Link href="/auth/login" className={s.loginLink}>Login</Link>
+            {/* <Link href="/auth/login" className={s.loginLink}>Login</Link> */}
             <button className={s.btnPrimary}>
               Request Demo
             </button>

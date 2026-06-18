@@ -1,7 +1,8 @@
 import { cookies } from 'next/headers';
 import React from 'react';
 import Link from 'next/link';
-import DynamicMap from '@/components/Map';
+import DynamicMap from '@/components/Map'; 
+import { redirect } from 'next/navigation';
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 const PlusIcon = () => (
@@ -59,8 +60,10 @@ export default async function OrgOwnerDashboard() {
   const cookieStore = await cookies();
   const cookieHeader = cookieStore.toString();
 
+  let shouldRedirect = false;
+
   try {
-    const [orgRes, campsRes] = await Promise.all([
+    const [orgRes, campsRes, profileRes] = await Promise.all([
       fetch("http://localhost:4000/api/admin/org-owner/getOwnerOrganization", {
         headers: { Cookie: cookieHeader },
         cache: 'no-store'
@@ -68,18 +71,40 @@ export default async function OrgOwnerDashboard() {
       fetch("http://localhost:4000/api/campuses", {
         headers: { Cookie: cookieHeader },
         cache: 'no-store'
+      }),
+      fetch("http://localhost:4000/api/auth/profile", {
+        headers: { Cookie: cookieHeader },
+        cache: 'no-store'
       })
     ]);
 
-    if (!orgRes.ok) throw new Error(`Failed to fetch organization: ${orgRes.statusText}`);
-    
+    // Handle HTTP status errors manually (similar to Axios behavior)
+    if (!profileRes.ok) {
+      if (profileRes.status === 401) {
+        shouldRedirect = true;
+      }
+      throw new Error(`Profile endpoint returned status ${profileRes.status} (${profileRes.statusText})`);
+    }
+
+    if (!orgRes.ok) {
+      throw new Error(`Organization endpoint returned status ${orgRes.status} (${orgRes.statusText})`);
+    }
+
+    const userProfile = await profileRes.json();
+
+    if (userProfile && userProfile.role !== "organization_owner") {
+      shouldRedirect = true;
+    }
+
     const orgData = await orgRes.json();
     const org = orgData.data;
-    
+
     let campuses = [];
     if (campsRes.ok) {
       const campsData = await campsRes.json();
       campuses = campsData.data || [];
+    } else {
+      console.warn(`Campuses endpoint returned status ${campsRes.status}`);
     }
 
     if (!org) {
@@ -113,7 +138,7 @@ export default async function OrgOwnerDashboard() {
         {/* Main body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 36px 36px', background: '#fafafa' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20 }}>
-            
+
             {/* LEFT — Campus Grid */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -144,9 +169,9 @@ export default async function OrgOwnerDashboard() {
                         {/* Map Section */}
                         <div style={{ height: '180px', position: 'relative', background: '#f4f4f5' }}>
                           {(campus.location && campus.location.latitude && campus.location.longitude) ? (
-                            <DynamicMap 
-                              center={[campus.location.latitude, campus.location.longitude]} 
-                              zoom={14} 
+                            <DynamicMap
+                              center={[campus.location.latitude, campus.location.longitude]}
+                              zoom={14}
                               markers={markers}
                             />
                           ) : (
@@ -198,13 +223,13 @@ export default async function OrgOwnerDashboard() {
                     </div>
                   )}
                   <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#09090b' }}>{org.name}</h3>
-                  <span style={{ 
+                  <span style={{
                     marginTop: '8px',
-                    background: org.status === 'active' ? '#dcfce7' : '#fef08a', 
+                    background: org.status === 'active' ? '#dcfce7' : '#fef08a',
                     color: org.status === 'active' ? '#166534' : '#854d0e',
-                    padding: '4px 12px', 
-                    borderRadius: '999px', 
-                    fontSize: '0.7rem', 
+                    padding: '4px 12px',
+                    borderRadius: '999px',
+                    fontSize: '0.7rem',
                     fontWeight: 800,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
@@ -257,13 +282,30 @@ export default async function OrgOwnerDashboard() {
       </div>
     );
   } catch (err: any) {
+    // Determine the type of fetch error
+    let errorTitle = "Error Loading Dashboard Data";
+    let errorMessage = err.message || "An unknown error occurred.";
+    let errorHint = "Ensure your backend server is running and the user is properly authenticated.";
+
+    if (err.message && (err.message.includes("fetch failed") || err.message.includes("ECONNREFUSED") || err.message.includes("connect"))) {
+      errorTitle = "Backend Server Unreachable";
+      errorMessage = "The frontend could not connect to the backend server at http://localhost:4000.";
+      errorHint = "Please check if your Node/Express backend server is started and running on port 4000.";
+    } else if (err.message && err.message.toLowerCase().includes("json")) {
+      errorTitle = "Invalid Response Format";
+      errorMessage = "The server replied, but the response could not be parsed as JSON.";
+      errorHint = "This often happens if the backend crashed and returned an HTML error page instead of JSON API response.";
+    }
+
     return (
       <div style={{ padding: '2rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '16px', color: '#991b1b' }}>
-        <h3 style={{ marginTop: 0, fontWeight: 800 }}>Error Loading Dashboard Data</h3>
-        <p style={{ margin: 0 }}>{err.message}</p>
-        <p style={{ margin: '0.5rem 0 0', fontSize: '0.85rem', opacity: 0.8 }}>Ensure your backend server is running and the user is properly authenticated as an Organization Owner.</p>
+        <h3 style={{ marginTop: 0, fontWeight: 800 }}>{errorTitle}</h3>
+        <p style={{ margin: 0, fontWeight: 600 }}>{errorMessage}</p>
+        <p style={{ margin: '0.5rem 0 0', fontSize: '0.85rem', opacity: 0.8 }}>{errorHint}</p>
       </div>
     );
   }
+
+
 }
 

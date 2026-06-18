@@ -24,6 +24,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         else if(profile.role === "organization_owner" && pathname === "/dashboard"){
           router.replace("/dashboard/orgOwner")
         }
+        else if(profile.role === "campus_admin" && pathname === "/dashboard"){
+          router.replace("/dashboard/campusAdmin");
+        }
         setUser(profile);
       } catch (err) {
         console.error("Auth check failed:", err);
@@ -39,6 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const isSuperAdmin = user?.role === 'super_admin';
   const isOrgOwner = user?.role === 'organization_owner';
+  const isCampusAdmin = user?.role === "campus_admin"
 
   const superAdminNavItems = [
     { name: 'Dashboard', path: '/dashboard/superAdmin', icon: <DashboardIcon /> },
@@ -50,7 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Settings', path: '/dashboard/superAdmin/settings', icon: <SettingsIcon /> },
   ];
 
-  const campusAdminNavItems = [
+  const securityInchargeNavItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
     { name: 'Incidents', path: '/dashboard/admin/incidents', icon: <AlertTriangleIcon /> },
     { name: 'SOS Alerts', path: '/dashboard/admin/sos', icon: <SOSIcon /> },
@@ -70,11 +74,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Settings', path: '/dashboard/orgOwner/settings', icon: <SettingsIcon /> },
   ];
 
+
+ const campusAdminNavItems = [
+    { name: 'Dashboard', path: '/dashboard/campusAdmin', icon: <DashboardIcon /> },
+    // { name: 'Incidents', path: '/dashboard/admin/incidents', icon: <AlertTriangleIcon /> },
+    // { name: 'SOS Alerts', path: '/dashboard/admin/sos', icon: <SOSIcon /> },
+    // { name: 'Live Map', path: '/dashboard/campusAdmin/map-demo', icon: <MapIcon /> },
+    // { name: 'Live CCTV', path: '/dashboard/campusAdmin/cctv', icon: <CameraIcon /> },
+    // { name: 'Face Scan', path: '/dashboard/admin/facial-recognition', icon: <FaceIcon /> },
+    // { name: 'Emergency Contacts', path: '/dashboard/campusamin/emergency-contacts', icon: <PhoneCallIcon /> },
+    { name: 'Manage Security Personal', path: '/dashboard/campusAdmin/securityPersonal', icon: <ShieldGuardIcon /> },
+    // { name: 'Messages', path: '/dashboard/admin/messages', icon: <ChatIcon /> },
+    { name: 'Manage Students / Staff', path: '/dashboard/campusAdmin/users', icon: <UsersIcon /> },
+  ];
+
+
   let navItems = campusAdminNavItems;
   if (isSuperAdmin) {
     navItems = superAdminNavItems;
   } else if (isOrgOwner) {
     navItems = orgOwnerNavItems;
+  }
+  else if(isCampusAdmin){
+    navItems = campusAdminNavItems
   }
 
   const handleLogout = async () => {

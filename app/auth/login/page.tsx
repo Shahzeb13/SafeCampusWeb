@@ -48,7 +48,10 @@ export default function LoginPage() {
         router.replace('/dashboard/superAdmin');
       } else if (role === 'organization_owner') {
         router.replace('/dashboard/orgOwner');
-      } else {
+      } else if(role === "campus_admin"){
+        router.replace("/dashboard/campusAdmin");
+      }
+      else {
         router.replace('/auth/login');
       }
     } catch (err: any) {
