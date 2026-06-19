@@ -112,7 +112,7 @@ export default function LoginPage() {
             </label>
             <Link
               href="/auth/forgot-password"
-              style={{ fontSize: '0.8rem', color: '#0052cc', textDecoration: 'none', fontWeight: 600 }}
+              className={styles.forgotLink}
             >
               Forgot password?
             </Link>

@@ -426,7 +426,249 @@
   border-radius: 999px;
 }
 
+/* --- PHONE MOCKUP --- */
+.phoneWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding: 40px 0;
+  width: 100%;
+}
+
+.phoneContainer {
+  position: relative;
+  width: 290px;
+  height: 580px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+/* Outer wrapper for physical buttons and shadow backdrop */
+.phoneBackdrop {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+  filter: blur(20px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.phoneFrame {
+  width: 100%;
+  height: 100%;
+  background: #1e293b;
+  border-radius: 40px;
+  border: 12px solid #0f172a;
+  box-shadow: 
+    0 25px 60px -15px rgba(0, 0, 0, 0.6), 
+    0 0 0 4px #334155,
+    inset 0 0 10px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-style: preserve-3d;
+}
+
+/* Physical Buttons */
+.phoneButton {
+  position: absolute;
+  background: #1e293b;
+  border-radius: 2px;
+  z-index: 1;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.buttonVolumeUp {
+  left: -15px;
+  top: 120px;
+  width: 4px;
+  height: 40px;
+}
+
+.buttonVolumeDown {
+  left: -15px;
+  top: 175px;
+  width: 4px;
+  height: 40px;
+}
+
+.buttonPower {
+  right: -15px;
+  top: 150px;
+  width: 4px;
+  height: 55px;
+}
+
+.phoneNotch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 20px;
+  background: #0f172a;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.phoneNotchCamera {
+  width: 6px;
+  height: 6px;
+  background: #1e293b;
+  border-radius: 50%;
+}
+
+.phoneNotchSpeaker {
+  width: 32px;
+  height: 3px;
+  background: #334155;
+  border-radius: 1.5px;
+}
+
+/* Simulated Status Bar */
+.phoneStatusBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  padding: 4px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 15;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.4), transparent);
+  pointer-events: none;
+}
+
+.statusBarRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statusBarBattery {
+  width: 18px;
+  height: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 2px;
+  padding: 1px;
+  display: flex;
+}
+
+.statusBarBatteryFill {
+  height: 100%;
+  width: 80%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1px;
+}
+
+.phoneScreen {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #0f172a;
+}
+
+/* Reflection Glare */
+.phoneGlare {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.03) 40%, transparent 60%);
+  z-index: 12;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+/* Home Indicator Bar */
+.phoneHomeBar {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 999px;
+  z-index: 15;
+  pointer-events: none;
+}
+
+/* Floating Widgets around the phone */
+.floatingWidget {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  padding: 10px 14px;
+  border-radius: 12px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.widgetLeft {
+  left: -45px;
+  top: 25%;
+  animation: widgetFloat 5s ease-in-out infinite alternate;
+  animation-delay: 0.2s;
+}
+
+.widgetRight {
+  right: -45px;
+  bottom: 30%;
+  animation: widgetFloat 5s ease-in-out infinite alternate;
+  animation-delay: 1s;
+}
+
+.widgetIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+}
+
+.widgetText {
+  display: flex;
+  flex-direction: column;
+}
+
+.widgetTitle {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--slate-900);
+}
+
+.widgetSub {
+  font-size: 8px;
+  color: var(--slate-500);
+}
+
+@keyframes widgetFloat {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-8px); }
+}
+
 /* --- FORM SECTION --- */
+
 .formSection {
   background: white;
   position: relative;

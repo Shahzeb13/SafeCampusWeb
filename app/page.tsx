@@ -25,6 +25,21 @@ export default function Home() {
     message: ""
   });
   const [loading, setLoading] = useState(false);
+  const [tilt, setTilt] = useState({ rx: 8, ry: -12 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    const box = card.getBoundingClientRect();
+    const x = e.clientX - box.left - box.width / 2;
+    const y = e.clientY - box.top - box.height / 2;
+    const rx = -(y / (box.height / 2)) * 12;
+    const ry = (x / (box.width / 2)) * 12;
+    setTilt({ rx, ry });
+  };
+
+  const handleMouseLeave = () => {
+    setTilt({ rx: 8, ry: -12 });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,30 +233,82 @@ export default function Home() {
                 </ul>
               </div>
 
-              <div className={s.imageWrapper}>
-                <div className={s.imageContainer}>
-                  <Image 
-                    src="/LandingPageImages/SafeCampusHeroImage.png" 
-                    alt="Clarity" 
-                    width={800} 
-                    height={600} 
-                    className={s.buildingImage}
-                  />
-                  
-                  {/* Status Widget */}
-                  <div className={s.statusWidget}>
-                    <div className={s.widgetHeader}>
-                      <span className={s.miniLabel}>sys_stat</span>
-                      <span className={`${s.miniLabel} ${s.secureLabel}`}>secure</span>
+              <div className={s.phoneWrapper}>
+                <div 
+                  className={s.phoneContainer}
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  {/* Backdrop Glow */}
+                  <div className={s.phoneBackdrop} />
+
+                  {/* Physical Side Buttons */}
+                  <div className={`${s.phoneButton} ${s.buttonVolumeUp}`} />
+                  <div className={`${s.phoneButton} ${s.buttonVolumeDown}`} />
+                  <div className={`${s.phoneButton} ${s.buttonPower}`} />
+
+                  {/* Floating Widget Left: Alert */}
+                  <div className={`${s.floatingWidget} ${s.widgetLeft}`}>
+                    <div className={s.widgetIcon} style={{ backgroundColor: '#ef4444' }}>
+                      <AlertCircle size={16} />
                     </div>
-                    <div className={s.barContainer}>
-                      <div className={s.barBg}>
-                        <div className={s.barFill} style={{ width: '80%' }} />
-                      </div>
-                      <div className={s.barBg}>
-                        <div className={s.barFill} style={{ width: '60%', backgroundColor: '#94a3b8' }} />
+                    <div className={s.widgetText}>
+                      <span className={s.widgetTitle}>SOS Active</span>
+                      <span className={s.widgetSub}>Location Shared</span>
+                    </div>
+                  </div>
+
+                  {/* Floating Widget Right: Safe */}
+                  <div className={`${s.floatingWidget} ${s.widgetRight}`}>
+                    <div className={s.widgetIcon} style={{ backgroundColor: '#10b981' }}>
+                      <CheckCircle2 size={16} />
+                    </div>
+                    <div className={s.widgetText}>
+                      <span className={s.widgetTitle}>Status Secure</span>
+                      <span className={s.widgetSub}>All guards online</span>
+                    </div>
+                  </div>
+
+                  {/* Device Frame */}
+                  <div 
+                    className={s.phoneFrame}
+                    style={{
+                      transform: `rotateY(${tilt.ry}deg) rotateX(${tilt.rx}deg) scale(${tilt.rx === 8 && tilt.ry === -12 ? 1 : 1.05})`
+                    }}
+                  >
+                    {/* Notch */}
+                    <div className={s.phoneNotch}>
+                      <div className={s.phoneNotchCamera} />
+                      <div className={s.phoneNotchSpeaker} />
+                    </div>
+
+                    {/* Status Bar */}
+                    <div className={s.phoneStatusBar}>
+                      <span>9:41</span>
+                      <div className={s.statusBarRight}>
+                        <Activity size={10} style={{ transform: 'rotate(90deg)' }} />
+                        <div className={s.statusBarBattery}>
+                          <div className={s.statusBarBatteryFill} />
+                        </div>
                       </div>
                     </div>
+
+                    {/* Screen Content */}
+                    <div className={s.phoneScreen}>
+                      {/* Reflection Glare */}
+                      <div className={s.phoneGlare} />
+
+                      <Image 
+                        src="/LandingPageImages/SafeCampusAppInterface.jpeg" 
+                        alt="SafeCampus App Interface" 
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        sizes="290px"
+                      />
+                    </div>
+
+                    {/* Home Bar Indicator */}
+                    <div className={s.phoneHomeBar} />
                   </div>
                 </div>
               </div>

@@ -15,6 +15,9 @@ async function apiRequest(endpoint: string, method: string = "GET", data?: any):
       method: method,
       data: data, // Axios automatically stringifies this to JSON
       withCredentials: true, // This allows cookies to work (like credentials: "include" in fetch)
+      headers:{
+        "x-client": "web"
+      }
     });
     
     // Axios automatically parses the JSON response into response.data
