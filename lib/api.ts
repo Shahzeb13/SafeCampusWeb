@@ -23,8 +23,12 @@ async function apiRequest(endpoint: string, method: string = "GET", data?: any):
     // Axios automatically parses the JSON response into response.data
     return response.data;
   } catch (error: any) {
-    // If the server returns an error (like 400 or 500), Axios throws an error.
-    // We try to get the message from the server response, otherwise fallback to standard error message.
+    // Log the failed request details for easier debugging in the console
+    console.error(`[API Error] ${method} ${url}:`, {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.response?.data?.message || error.message
+    });
     throw new Error(error.response?.data?.message || error.message || "Api Error");
   }
 }
@@ -124,8 +128,21 @@ export const campuses = {
   },
   delete: (id: string) => {
     return apiRequest(`/campuses/${id}`, "DELETE");
+  },
+  submitRequest: (data: any) => {
+    return apiRequest("/admin/org-owner/campus-requests", "POST", data);
+  },
+  getOwnerRequests: () => {
+    return apiRequest("/admin/org-owner/campus-requests", "GET");
+  },
+  getSuperRequests: () => {
+    return apiRequest("/admin/super/campus-requests", "GET");
+  },
+  respondToRequest: (id: string, action: 'approve' | 'reject', rejectionReason?: string) => {
+    return apiRequest(`/admin/super/campus-requests/${id}/respond`, "POST", { action, rejectionReason });
   }
 };
+
 
 // SOS System
 export const sos = {
@@ -198,3 +215,11 @@ export const landing = {
     return apiRequest("/landing/contact", "POST", data);
   }
 };
+
+// Security Incharge Dashboard Data
+export const securityIncharge = {
+  getDashboard: () => {
+    return apiRequest("/admin/security-incharge-dashboard", "GET");
+  }
+};
+

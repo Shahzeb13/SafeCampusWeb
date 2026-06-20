@@ -18,4 +18,7 @@ export interface MapComponentProps {
   zoom?: number;
   markers?: MapMarker[];
   className?: string; // To allow external styling like height
+  geofenceRadius?: number; // in meters
+  geofenceCenter?: [number, number]; // [latitude, longitude]
 }
+

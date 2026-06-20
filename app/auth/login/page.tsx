@@ -51,6 +51,9 @@ export default function LoginPage() {
       } else if(role === "campus_admin"){
         router.replace("/dashboard/campusAdmin");
       }
+      else if(role === "security_incharge"){
+        router.replace("/dashboard/securityIncharge");
+      }
       else {
         router.replace('/auth/login');
       }

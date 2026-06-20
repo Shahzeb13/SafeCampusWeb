@@ -92,12 +92,12 @@ export default function FacialRecognitionPage() {
              </div>
 
              {/* Logic Summary */}
-             <div style={{ background: '#09090b', padding: '24px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', gap: '30px', alignItems: 'center' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+             <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', border: '1px solid var(--ent-border)', display: 'flex', gap: '30px', alignItems: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'var(--ent-slate-100)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
                    📋
                 </div>
                 <div style={{ flex: 1 }}>
-                   <h3 style={{ margin: '0 0 5px 0', color: '#fff', fontSize: '1rem' }}>Biometric Extraction Logic</h3>
+                   <h3 style={{ margin: '0 0 5px 0', color: '#09090b', fontSize: '1rem' }}>Biometric Extraction Logic</h3>
                    <p style={{ margin: 0, color: '#71717a', fontSize: '0.85rem' }}>
                      Automated detection script identifies facial anchor points. Geometry vectors are compared against encrypted student records to establish mathematical probability of identity.
                    </p>
@@ -109,40 +109,40 @@ export default function FacialRecognitionPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
              
              {/* Identity Card */}
-             <div style={{ background: '#09090b', border: '1px solid #fff', borderRadius: '12px', padding: '24px', position: 'relative' }}>
+             <div style={{ background: '#fff', border: '1px solid var(--ent-border)', borderRadius: '12px', padding: '24px', position: 'relative', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                 <h2 style={{ fontSize: '0.7rem', color: '#71717a', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '24px', fontWeight: 'bold' }}>Identification Result</h2>
                 
                 <div style={{ display: 'flex', gap: '20px', marginBottom: '25px' }}>
-                   <div style={{ width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', filter: 'grayscale(1)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                   <div style={{ width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', filter: 'grayscale(1)', border: '1px solid var(--ent-border)' }}>
                       <img src={activeSubject.avatar} alt="Avatar" style={{ width: '100%', height: '100%' }} />
                    </div>
                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 'bold' }}>{activeSubject.name}</div>
+                      <div style={{ color: '#09090b', fontSize: '1.25rem', fontWeight: 'bold' }}>{activeSubject.name}</div>
                       <div style={{ color: '#71717a', fontSize: '0.8rem' }}>{activeSubject.role} // {activeSubject.id}</div>
                    </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                   <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <div style={{ color: '#52525b', fontSize: '0.6rem', textTransform: 'uppercase', marginBottom: '4px' }}>Match Score</div>
-                      <div style={{ color: '#fff', fontSize: '1rem', fontWeight: 'bold' }}>{activeSubject.confidence}</div>
+                   <div style={{ background: 'var(--ent-slate-100)', padding: '12px', borderRadius: '8px', border: '1px solid var(--ent-border)' }}>
+                      <div style={{ color: '#71717a', fontSize: '0.6rem', textTransform: 'uppercase', marginBottom: '4px' }}>Match Score</div>
+                      <div style={{ color: '#09090b', fontSize: '1rem', fontWeight: 'bold' }}>{activeSubject.confidence}</div>
                    </div>
-                   <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <div style={{ color: '#52525b', fontSize: '0.6rem', textTransform: 'uppercase', marginBottom: '4px' }}>Validation</div>
-                      <div style={{ color: activeSubject.status === 'Clear' ? '#4ade80' : '#f87171', fontSize: '1rem', fontWeight: 'bold' }}>{activeSubject.status}</div>
+                   <div style={{ background: 'var(--ent-slate-100)', padding: '12px', borderRadius: '8px', border: '1px solid var(--ent-border)' }}>
+                      <div style={{ color: '#71717a', fontSize: '0.6rem', textTransform: 'uppercase', marginBottom: '4px' }}>Validation</div>
+                      <div style={{ color: activeSubject.status === 'Clear' ? '#16a34a' : '#dc2626', fontSize: '1rem', fontWeight: 'bold' }}>{activeSubject.status}</div>
                    </div>
                 </div>
 
-                <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '20px' }}>
+                <div style={{ marginTop: '20px', borderTop: '1px solid var(--ent-border)', paddingTop: '20px' }}>
                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#71717a', fontSize: '0.8rem' }}>
                       <span>Last Seen:</span>
-                      <span style={{ color: '#fff' }}>{activeSubject.lastSeen}</span>
+                      <span style={{ color: '#09090b' }}>{activeSubject.lastSeen}</span>
                    </div>
                 </div>
              </div>
 
              {/* Detection History */}
-             <div style={{ background: '#09090b', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '24px' }}>
+             <div style={{ background: '#fff', border: '1px solid var(--ent-border)', borderRadius: '12px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                 <h2 style={{ fontSize: '0.7rem', color: '#71717a', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '20px', fontWeight: 'bold' }}>Log History</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                    {MOCK_DETECTED.map((sub) => (
@@ -155,15 +155,15 @@ export default function FacialRecognitionPage() {
                           gap: '12px', 
                           padding: '10px', 
                           borderRadius: '8px', 
-                          background: activeSubject.id === sub.id ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
-                          border: activeSubject.id === sub.id ? '1px solid rgba(255,255,255,0.2)' : '1px solid transparent',
+                          background: activeSubject.id === sub.id ? 'var(--ent-slate-100)' : 'transparent',
+                          border: activeSubject.id === sub.id ? '1px solid var(--ent-border)' : '1px solid transparent',
                           cursor: 'pointer'
                         }}
                       >
                          <img src={sub.avatar} alt="User" style={{ width: '32px', height: '32px', borderRadius: '4px', filter: 'grayscale(1)' }} />
                          <div style={{ flex: 1 }}>
-                            <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: 500 }}>{sub.name}</div>
-                            <div style={{ color: '#52525b', fontSize: '0.7rem' }}>Match {sub.confidence}</div>
+                            <div style={{ color: '#09090b', fontSize: '0.85rem', fontWeight: 500 }}>{sub.name}</div>
+                            <div style={{ color: '#71717a', fontSize: '0.7rem' }}>Match {sub.confidence}</div>
                          </div>
                       </div>
                    ))}

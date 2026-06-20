@@ -34,6 +34,7 @@ export default function CampusesPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [editingCampus, setEditingCampus] = useState<any>(null);
+  const [activeEditTab, setActiveEditTab] = useState<'general' | 'location' | 'contacts' | 'settings'>('general');
   const [deletingCampus, setDeletingCampus] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -54,7 +55,10 @@ export default function CampusesPage() {
     fetchData();
   }, []);
 
-
+  const startEdit = (campus: any) => {
+    setEditingCampus(JSON.parse(JSON.stringify(campus)));
+    setActiveEditTab('general');
+  };
 
   const handleDelete = async () => {
     if (!deletingCampus) return;
@@ -80,7 +84,20 @@ export default function CampusesPage() {
         code: editingCampus.code,
         city: editingCampus.city,
         address: editingCampus.address,
-        location: editingCampus.location
+        location: {
+          latitude: parseFloat(editingCampus.location?.latitude) || 0,
+          longitude: parseFloat(editingCampus.location?.longitude) || 0
+        },
+        status: editingCampus.status || 'active',
+        allowedRadiusMeters: parseInt(editingCampus.allowedRadiusMeters) || 1000,
+        contactEmail: editingCampus.contactEmail || '',
+        contactPhone: editingCampus.contactPhone || '',
+        emergencyPhone: editingCampus.emergencyPhone || '',
+        settings: {
+          allowStudentRegistration: editingCampus.settings?.allowStudentRegistration ?? true,
+          allowStaffRegistration: editingCampus.settings?.allowStaffRegistration ?? true,
+          requireAdminApprovalForUsers: editingCampus.settings?.requireAdminApprovalForUsers ?? true
+        }
       };
       await campuses.update(editingCampus._id, payload);
       toast.success("Campus updated successfully!");
@@ -92,6 +109,7 @@ export default function CampusesPage() {
       setSubmitting(false);
     }
   };
+
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '9px 12px', border: '1.5px solid #e4e4e7',
@@ -252,7 +270,8 @@ export default function CampusesPage() {
                       </span>
                       
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => setEditingCampus(campus)} style={{ padding: '6px 14px', background: '#f4f4f5', border: '1px solid #e4e4e7', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', color: '#09090b' }}>Edit</button>
+                        <button onClick={() => startEdit(campus)} style={{ padding: '6px 14px', background: '#f4f4f5', border: '1px solid #e4e4e7', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', color: '#09090b' }}>Edit</button>
+
                         {/* <button onClick={() => setDeletingCampus(campus)} style={{ padding: '6px 14px', background: '#fff0f0', border: '1px solid #fecaca', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', color: '#dc2626' }}>Delete</button> */}
                       </div>
                     </div>
@@ -267,58 +286,192 @@ export default function CampusesPage() {
 
       {/* Edit Modal */}
       {editingCampus && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: 14, padding: '28px', width: '100%', maxWidth: 500, boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 24px' }}>Edit Campus</h2>
-            <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label style={labelStyle}>Campus Name</label>
-                <input style={inputStyle} value={editingCampus.name} required
-                  onChange={e => setEditingCampus({ ...editingCampus, name: e.target.value })}
-                  onFocus={focusIn} onBlur={focusOut} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label style={labelStyle}>Campus Code</label>
-                  <input style={inputStyle} value={editingCampus.code} required
-                    onChange={e => setEditingCampus({ ...editingCampus, code: e.target.value })}
-                    onFocus={focusIn} onBlur={focusOut} />
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(9, 9, 11, 0.4)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: '32px', width: '90%', maxWidth: '600px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', border: '1px solid #e4e4e7' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#09090b', letterSpacing: '-0.02em' }}>Configure Campus</h2>
+              <button type="button" onClick={() => setEditingCampus(null)} style={{ background: 'none', border: 'none', color: '#71717a', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+            </div>
+
+            {/* Tab Selection */}
+            <div style={{ display: 'flex', borderBottom: '1px solid #e4e4e7', marginBottom: '24px', gap: '20px' }}>
+              {['General', 'Location', 'Contacts', 'Settings'].map((tab) => {
+                const tabId = tab.toLowerCase() as any;
+                const isActive = activeEditTab === tabId;
+                return (
+                  <button
+                    key={tabId}
+                    type="button"
+                    onClick={() => setActiveEditTab(tabId)}
+                    style={{
+                      padding: '8px 4px 12px 4px',
+                      background: 'none',
+                      border: 'none',
+                      borderBottom: isActive ? '2px solid #0052cc' : '2px solid transparent',
+                      color: isActive ? '#0052cc' : '#71717a',
+                      fontWeight: isActive ? 700 : 500,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s'
+                    }}
+                  >
+                    {tab}
+                  </button>
+                );
+              })}
+            </div>
+
+            <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              
+              {/* Tab: General */}
+              {activeEditTab === 'general' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div>
+                    <label style={labelStyle}>Campus Name</label>
+                    <input style={inputStyle} value={editingCampus.name || ''} required
+                      onChange={e => setEditingCampus({ ...editingCampus, name: e.target.value })}
+                      onFocus={focusIn} onBlur={focusOut} placeholder="e.g. Main Islamabad Campus" />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                    <div>
+                      <label style={labelStyle}>Campus Code</label>
+                      <input style={inputStyle} value={editingCampus.code || ''} required
+                        onChange={e => setEditingCampus({ ...editingCampus, code: e.target.value })}
+                        onFocus={focusIn} onBlur={focusOut} placeholder="e.g. ISB" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Status</label>
+                      <select style={inputStyle} value={editingCampus.status || 'active'}
+                        onChange={e => setEditingCampus({ ...editingCampus, status: e.target.value })}
+                        onFocus={focusIn} onBlur={focusOut}>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="suspended">Suspended</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label style={labelStyle}>City</label>
-                  <input style={inputStyle} value={editingCampus.city} required
-                    onChange={e => setEditingCampus({ ...editingCampus, city: e.target.value })}
-                    onFocus={focusIn} onBlur={focusOut} />
+              )}
+
+              {/* Tab: Location & Geofencing */}
+              {activeEditTab === 'location' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                    <div>
+                      <label style={labelStyle}>City</label>
+                      <input style={inputStyle} value={editingCampus.city || ''} required
+                        onChange={e => setEditingCampus({ ...editingCampus, city: e.target.value })}
+                        onFocus={focusIn} onBlur={focusOut} placeholder="e.g. Islamabad" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Geofence Radius (Meters)</label>
+                      <input style={inputStyle} type="number" min="50" max="50000"
+                        value={editingCampus.allowedRadiusMeters ?? 1000} required
+                        onChange={e => setEditingCampus({ ...editingCampus, allowedRadiusMeters: parseInt(e.target.value) || 0 })}
+                        onFocus={focusIn} onBlur={focusOut} placeholder="e.g. 1000" />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Coordinates (Lat, Long)</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                      <input style={{ ...inputStyle, fontFamily: 'monospace' }} 
+                        value={editingCampus.location?.latitude ?? ''} required type="number" step="any"
+                        onChange={e => setEditingCampus({ ...editingCampus, location: { ...editingCampus.location, latitude: parseFloat(e.target.value) || 0 } })}
+                        onFocus={focusIn} onBlur={focusOut} placeholder="Latitude" />
+                      <input style={{ ...inputStyle, fontFamily: 'monospace' }} 
+                        value={editingCampus.location?.longitude ?? ''} required type="number" step="any"
+                        onChange={e => setEditingCampus({ ...editingCampus, location: { ...editingCampus.location, longitude: parseFloat(e.target.value) || 0 } })}
+                        onFocus={focusIn} onBlur={focusOut} placeholder="Longitude" />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Physical Address</label>
+                    <textarea style={{ ...inputStyle, resize: 'vertical', minHeight: 70 } as React.CSSProperties}
+                      value={editingCampus.address || ''} required
+                      onChange={e => setEditingCampus({ ...editingCampus, address: e.target.value })}
+                      onFocus={focusIn} onBlur={focusOut} placeholder="Full street address..." />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label style={labelStyle}>Physical Address</label>
-                <textarea style={{ ...inputStyle, resize: 'vertical', minHeight: 70 } as React.CSSProperties}
-                  value={editingCampus.address} required
-                  onChange={e => setEditingCampus({ ...editingCampus, address: e.target.value })}
-                  onFocus={focusIn} onBlur={focusOut} />
-              </div>
-              <div>
-                <label style={labelStyle}>Coordinates (Lat, Long)</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <input style={{ ...inputStyle, fontFamily: 'monospace' }} 
-                    value={editingCampus.location?.latitude || ''} required
-                    onChange={e => setEditingCampus({ ...editingCampus, location: { ...editingCampus.location, latitude: parseFloat(e.target.value) } })}
-                    onFocus={focusIn} onBlur={focusOut} />
-                  <input style={{ ...inputStyle, fontFamily: 'monospace' }} 
-                    value={editingCampus.location?.longitude || ''} required
-                    onChange={e => setEditingCampus({ ...editingCampus, location: { ...editingCampus.location, longitude: parseFloat(e.target.value) } })}
-                    onFocus={focusIn} onBlur={focusOut} />
+              )}
+
+              {/* Tab: Contacts */}
+              {activeEditTab === 'contacts' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div>
+                    <label style={labelStyle}>Contact Email</label>
+                    <input style={inputStyle} type="email" value={editingCampus.contactEmail || ''}
+                      onChange={e => setEditingCampus({ ...editingCampus, contactEmail: e.target.value })}
+                      onFocus={focusIn} onBlur={focusOut} placeholder="e.g. info@campus.edu" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Contact Phone Number</label>
+                    <input style={inputStyle} value={editingCampus.contactPhone || ''}
+                      onChange={e => setEditingCampus({ ...editingCampus, contactPhone: e.target.value })}
+                      onFocus={focusIn} onBlur={focusOut} placeholder="e.g. +9251-1234567" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Emergency Hotline Phone</label>
+                    <input style={inputStyle} value={editingCampus.emergencyPhone || ''}
+                      onChange={e => setEditingCampus({ ...editingCampus, emergencyPhone: e.target.value })}
+                      onFocus={focusIn} onBlur={focusOut} placeholder="e.g. +9251-999" />
+                  </div>
                 </div>
-              </div>
-              <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-                <button type="button" onClick={() => setEditingCampus(null)} style={{ flex: 1, padding: '12px', background: '#e4e4e7', color: '#09090b', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
-                <button type="submit" disabled={submitting} style={{ flex: 1, padding: '12px', background: '#0052cc', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', opacity: submitting ? 0.7 : 1 }}>{submitting ? 'Saving...' : 'Save Changes'}</button>
+              )}
+
+              {/* Tab: Settings */}
+              {activeEditTab === 'settings' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: '#fafafa', borderRadius: '8px', border: '1px solid #e4e4e7' }}>
+                    <div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#09090b' }}>Allow Student Registration</div>
+                      <div style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>Enable students to create accounts themselves.</div>
+                    </div>
+                    <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: '#0052cc', cursor: 'pointer' }}
+                      checked={editingCampus.settings?.allowStudentRegistration ?? true}
+                      onChange={e => setEditingCampus({
+                        ...editingCampus,
+                        settings: { ...(editingCampus.settings || {}), allowStudentRegistration: e.target.checked }
+                      })} />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: '#fafafa', borderRadius: '8px', border: '1px solid #e4e4e7' }}>
+                    <div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#09090b' }}>Allow Staff Registration</div>
+                      <div style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>Enable faculty and staff to self-register.</div>
+                    </div>
+                    <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: '#0052cc', cursor: 'pointer' }}
+                      checked={editingCampus.settings?.allowStaffRegistration ?? true}
+                      onChange={e => setEditingCampus({
+                        ...editingCampus,
+                        settings: { ...(editingCampus.settings || {}), allowStaffRegistration: e.target.checked }
+                      })} />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: '#fafafa', borderRadius: '8px', border: '1px solid #e4e4e7' }}>
+                    <div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#09090b' }}>Require Admin Approval</div>
+                      <div style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '2px' }}>Accounts must be reviewed by admins before activation.</div>
+                    </div>
+                    <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: '#0052cc', cursor: 'pointer' }}
+                      checked={editingCampus.settings?.requireAdminApprovalForUsers ?? true}
+                      onChange={e => setEditingCampus({
+                        ...editingCampus,
+                        settings: { ...(editingCampus.settings || {}), requireAdminApprovalForUsers: e.target.checked }
+                      })} />
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: 12, marginTop: '8px' }}>
+                <button type="button" onClick={() => setEditingCampus(null)} style={{ flex: 1, padding: '10px 16px', background: '#f4f4f5', border: '1px solid #e4e4e7', color: '#09090b', borderRadius: 8, fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" disabled={submitting} style={{ flex: 1, padding: '10px 16px', background: '#0052cc', color: '#fff', border: 'none', borderRadius: 8, fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', opacity: submitting ? 0.7 : 1 }}>{submitting ? 'Saving...' : 'Save Configuration'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
+
 
       {/* Delete Confirmation Modal */}
       {deletingCampus && (

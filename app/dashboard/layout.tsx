@@ -27,7 +27,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         else if(profile.role === "campus_admin" && pathname === "/dashboard"){
           router.replace("/dashboard/campusAdmin");
         }
-        setUser(profile);
+        else if(profile.role === "security_incharge"  && pathname === "/dashboard"){
+          router.replace("/dashboard/securityIncharge");
+        }
+        setUser(profile)
       } catch (err) {
         console.error("Auth check failed:", err);
         router.replace('/auth/login');
@@ -42,12 +45,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const isSuperAdmin = user?.role === 'super_admin';
   const isOrgOwner = user?.role === 'organization_owner';
-  const isCampusAdmin = user?.role === "campus_admin"
+  const isCampusAdmin = user?.role === "campus_admin";
+  const isSecurityIncharge = user?.role === "security_incharge";
 
   const superAdminNavItems = [
     { name: 'Dashboard', path: '/dashboard/superAdmin', icon: <DashboardIcon /> },
     { name: 'Organizations', path: '/dashboard/superAdmin/organizations', icon: <BuildingIcon /> },
     { name: 'Campuses', path: '/dashboard/superAdmin/campuses', icon: <MapPinIcon /> },
+    { name: 'Campus Requests', path: '/dashboard/superAdmin/campus-requests', icon: <FileTextIcon /> },
     { name: 'Users', path: '/dashboard/superAdmin/users', icon: <UsersIcon /> },
     { name: 'System Health', path: '/dashboard/superAdmin/system-health', icon: <ActivityIcon /> },
     { name: 'Audit Logs', path: '/dashboard/superAdmin/audit-logs', icon: <FileTextIcon /> },
@@ -55,36 +60,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ];
 
   const securityInchargeNavItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
-    { name: 'Incidents', path: '/dashboard/admin/incidents', icon: <AlertTriangleIcon /> },
-    { name: 'SOS Alerts', path: '/dashboard/admin/sos', icon: <SOSIcon /> },
-    { name: 'Live Map', path: '/dashboard/admin/map-demo', icon: <MapIcon /> },
-    { name: 'Live CCTV', path: '/dashboard/admin/cctv', icon: <CameraIcon /> },
-    { name: 'Face Scan', path: '/dashboard/admin/facial-recognition', icon: <FaceIcon /> },
-    { name: 'Emergency Contacts', path: '/dashboard/admin/emergency-contacts', icon: <PhoneCallIcon /> },
-    { name: 'Security Guards', path: '/dashboard/admin/security-guards', icon: <ShieldGuardIcon /> },
-    { name: 'Messages', path: '/dashboard/admin/messages', icon: <ChatIcon /> },
-    { name: 'Manage Users', path: '/dashboard/admin/users', icon: <UsersIcon /> },
+    { name: 'Dashboard', path: '/dashboard/securityIncharge', icon: <DashboardIcon /> },
+    { name: 'Incidents', path: '/dashboard/securityIncharge/incidents', icon: <AlertTriangleIcon /> },
+    { name: 'SOS Alerts', path: '/dashboard/securityIncharge/sos', icon: <SOSIcon /> },
+    { name: 'Live Map', path: '/dashboard/securityIncharge/map-demo', icon: <MapIcon /> },
+    { name: 'Live CCTV', path: '/dashboard/securityIncharge/cctv', icon: <CameraIcon /> },
+    { name: 'Face Scan', path: '/dashboard/securityIncharge/facial-recognition', icon: <FaceIcon /> },
+    { name: 'Emergency Contacts', path: '/dashboard/securityIncharge/emergency-contacts', icon: <PhoneCallIcon /> },
+    { name: 'Security Guards', path: '/dashboard/securityIncharge/security-guards', icon: <ShieldGuardIcon /> },
+    { name: 'Messages', path: '/dashboard/securityIncharge/messages', icon: <ChatIcon /> },
+    { name: 'Manage Users', path: '/dashboard/securityIncharge/users', icon: <UsersIcon /> },
   ];
 
   const orgOwnerNavItems = [
     { name: 'Dashboard', path: '/dashboard/orgOwner', icon: <DashboardIcon /> },
     { name: 'Campuses', path: '/dashboard/orgOwner/campuses', icon: <MapPinIcon /> },
+    { name: 'Campus Requests', path: '/dashboard/orgOwner/campuses/requests', icon: <FileTextIcon /> },
     { name: 'Users', path: '/dashboard/orgOwner/users', icon: <UsersIcon /> },
     { name: 'Settings', path: '/dashboard/orgOwner/settings', icon: <SettingsIcon /> },
   ];
 
 
+
  const campusAdminNavItems = [
     { name: 'Dashboard', path: '/dashboard/campusAdmin', icon: <DashboardIcon /> },
-    // { name: 'Incidents', path: '/dashboard/admin/incidents', icon: <AlertTriangleIcon /> },
-    // { name: 'SOS Alerts', path: '/dashboard/admin/sos', icon: <SOSIcon /> },
+    // { name: 'Incidents', path: '/dashboard/securityIncharge/incidents', icon: <AlertTriangleIcon /> },
+    // { name: 'SOS Alerts', path: '/dashboard/securityIncharge/sos', icon: <SOSIcon /> },
     // { name: 'Live Map', path: '/dashboard/campusAdmin/map-demo', icon: <MapIcon /> },
     // { name: 'Live CCTV', path: '/dashboard/campusAdmin/cctv', icon: <CameraIcon /> },
-    // { name: 'Face Scan', path: '/dashboard/admin/facial-recognition', icon: <FaceIcon /> },
+    // { name: 'Face Scan', path: '/dashboard/securityIncharge/facial-recognition', icon: <FaceIcon /> },
     // { name: 'Emergency Contacts', path: '/dashboard/campusamin/emergency-contacts', icon: <PhoneCallIcon /> },
     { name: 'Manage Security Personal', path: '/dashboard/campusAdmin/securityPersonal', icon: <ShieldGuardIcon /> },
-    // { name: 'Messages', path: '/dashboard/admin/messages', icon: <ChatIcon /> },
+    // { name: 'Messages', path: '/dashboard/securityIncharge/messages', icon: <ChatIcon /> },
     { name: 'Manage Students / Staff', path: '/dashboard/campusAdmin/users', icon: <UsersIcon /> },
   ];
 
@@ -96,7 +103,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     navItems = orgOwnerNavItems;
   }
   else if(isCampusAdmin){
-    navItems = campusAdminNavItems
+    navItems = campusAdminNavItems;
+  }
+  else if(isSecurityIncharge){
+    navItems = securityInchargeNavItems;
   }
 
   const handleLogout = async () => {
@@ -148,13 +158,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
           
           <div style={{ marginTop: 'auto', padding: '1.5rem', borderTop: '1px solid #e4e4e7' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', color: '#71717a' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', color: '#71717a' }}>
                <ShieldUserIcon />
                <div style={{ display: 'flex', flexDirection: 'column' }}>
                  <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#09090b' }}>{user?.username}</span>
-                 <span style={{ fontSize: '0.75rem', color: '#71717a' }}>{isSuperAdmin ? 'Platform Admin' : isOrgOwner ? 'Organization Owner' : 'Campus Admin'}</span>
+                 <span style={{ fontSize: '0.75rem', color: '#71717a', fontWeight: 500 }}>{isSuperAdmin ? 'Platform Admin' : isOrgOwner ? 'Organization Owner' : isCampusAdmin ? 'Campus Admin' : isSecurityIncharge ? 'Security Incharge' : 'User'}</span>
                </div>
             </div>
+            
+            {(user?.organizationId?.name || user?.campusId?.name) && (
+              <div style={{ padding: '8px 12px', background: '#fafafa', borderRadius: '8px', border: '1px solid #e4e4e7', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {user?.organizationId?.name && (
+                  <div style={{ fontSize: '0.7rem', color: '#71717a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontWeight: 600, color: '#09090b' }}>Org:</span> {user.organizationId.name}
+                  </div>
+                )}
+                {user?.campusId?.name && (
+                  <div style={{ fontSize: '0.7rem', color: '#71717a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontWeight: 600, color: '#09090b' }}>Campus:</span> {user.campusId.name}
+                  </div>
+                )}
+              </div>
+            )}
+
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               <Link href="#" className={styles.navItem} style={{ padding: '8px 12px', fontSize: '0.8rem' }}>
@@ -173,11 +199,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </main>
 
         {/* Global Emergency Listener */}
-        <EmergencyAlertSystem />
+        {isSecurityIncharge && <EmergencyAlertSystem />}
       </div>
     </>
   );
 }
+
 
 // Icons
 const ShieldIcon = () => (

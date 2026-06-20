@@ -217,7 +217,10 @@ export default function CampusAdminDashboard() {
                     center={[campusData.location.latitude, campusData.location.longitude]}
                     zoom={15}
                     markers={markers}
+                    geofenceRadius={campusData.allowedRadiusMeters}
+                    geofenceCenter={[campusData.location.latitude, campusData.location.longitude]}
                   />
+
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a1a1aa', fontSize: '0.875rem' }}>
                     No precise location coordinates available

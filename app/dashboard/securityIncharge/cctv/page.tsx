@@ -27,7 +27,7 @@ export default function CCTVPage() {
           <p>Multi-node biometric surveillance and spatial security grid.</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-           <button style={{ padding: '8px 16px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer' }}>
+           <button style={{ padding: '8px 16px', background: '#fff', border: '1px solid #e4e4e7', color: '#09090b', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500 }}>
              Capture Snapshot
            </button>
            <button className={styles.primaryButton}>
@@ -46,23 +46,23 @@ export default function CCTVPage() {
           }}>
             {CAMERAS.map((cam) => (
               <div key={cam.id} style={{ 
-                background: '#0c0c0e', 
+                background: '#fff', 
                 borderRadius: '12px', 
                 overflow: 'hidden', 
-                border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid #e4e4e7',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
                 position: 'relative'
               }}>
                 {/* Header HUD */}
                 <div style={{ 
-                  position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-                  padding: '12px 16px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)',
+                  padding: '12px 16px', background: '#fafafa', borderBottom: '1px solid #e4e4e7',
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                     <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }}></div>
-                     <span style={{ color: '#fff', fontSize: '10px', fontWeight: 'bold', fontFamily: 'monospace' }}>SEC_NODE_{cam.id}</span>
+                     <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444', animation: 'pulse 2s infinite' }}></div>
+                     <span style={{ color: '#09090b', fontSize: '0.78rem', fontWeight: 700, fontFamily: 'monospace' }}>SEC_NODE_{cam.id}</span>
                   </div>
-                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '9px', fontFamily: 'monospace' }}>
+                  <div style={{ color: '#71717a', fontSize: '0.72rem', fontFamily: 'monospace' }}>
                     {currentTime.toLocaleTimeString()} [ UTC+5 ]
                   </div>
                 </div>
@@ -73,17 +73,10 @@ export default function CCTVPage() {
                 </div>
 
                 {/* Bottom Metadata */}
-                <div style={{ padding: '12px 16px', background: '#0c0c0e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: 500 }}>{cam.location}</div>
-                    <div style={{ color: '#71717a', fontSize: '0.75rem', textTransform: 'uppercase' }}>BITRATE: 4.2MBPS</div>
+                <div style={{ padding: '12px 16px', background: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e4e4e7' }}>
+                    <div style={{ color: '#09090b', fontSize: '0.85rem', fontWeight: 500 }}>{cam.location}</div>
+                    <div style={{ color: '#71717a', fontSize: '0.72rem', textTransform: 'uppercase', fontFamily: 'monospace' }}>BITRATE: 4.2MBPS</div>
                 </div>
-
-                {/* Simulated scanline effect */}
-                <div style={{ 
-                   position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, 
-                   background: 'repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 4px)',
-                   pointerEvents: 'none'
-                }}></div>
               </div>
             ))}
           </div>
@@ -92,27 +85,26 @@ export default function CCTVPage() {
           <div style={{ 
             marginTop: '30px', 
             padding: '24px', 
-            background: '#0c0c0e', 
+            background: '#fff', 
             borderRadius: '12px', 
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            border: '1px solid #e4e4e7',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between'
           }}>
              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                <div style={{ width: '50px', height: '50px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ width: '50px', height: '50px', background: '#f4f4f5', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', border: '1px solid #e4e4e7' }}>
                    🎛️
                 </div>
                 <div>
-                   <h5 style={{ margin: 0, color: '#fff', fontSize: '0.95rem', fontWeight: 600 }}>Forensic Video Triage Engine</h5>
+                   <h5 style={{ margin: 0, color: '#09090b', fontSize: '0.95rem', fontWeight: 600 }}>Forensic Video Triage Engine</h5>
                    <p style={{ margin: '4px 0 0 0', color: '#71717a', fontSize: '0.8rem' }}>Streams are being parsed for object persistence and unauthorized boundary crossing in real-time.</p>
                 </div>
              </div>
-             <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ textAlign: 'right' }}>
-                   <div style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 'bold' }}>NETWORK HEALTH</div>
-                   <div style={{ color: '#22c55e', fontSize: '0.7rem' }}>OPTIMAL (12ms Latency)</div>
-                </div>
+             <div style={{ textAlign: 'right' }}>
+                <div style={{ color: '#09090b', fontSize: '0.8rem', fontWeight: 700 }}>NETWORK HEALTH</div>
+                <div style={{ color: '#16a34a', fontSize: '0.7rem', fontWeight: 600 }}>OPTIMAL (12ms Latency)</div>
              </div>
           </div>
         </div>

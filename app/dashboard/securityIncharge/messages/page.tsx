@@ -135,7 +135,7 @@ export default function MessagesPage() {
 
   if (loading && !adminUser) {
     return (
-      <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+      <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center", color: "#71717a" }}>
         <p>Loading messages...</p>
       </div>
     );
@@ -144,38 +144,59 @@ export default function MessagesPage() {
   return (
     <div style={{ display: "flex", height: "calc(100vh - 100px)", gap: "20px", padding: "20px" }}>
       {/* Sidebar: User List */}
-      <div style={{ width: "300px", background: "#18181b", borderRadius: "12px", border: "1px solid #27272a", display: "flex", flexDirection: "column" }}>
-        <div style={{ padding: "20px", borderBottom: "1px solid #27272a" }}>
-          <h2 style={{ fontSize: "1.2rem", color: "#fff", margin: 0 }}>Conversations</h2>
+      <div style={{ 
+        width: "300px", 
+        background: "#fff", 
+        borderRadius: "12px", 
+        border: "1px solid #e4e4e7", 
+        boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
+        display: "flex", 
+        flexDirection: "column" 
+      }}>
+        <div style={{ padding: "20px", borderBottom: "1px solid #e4e4e7" }}>
+          <h2 style={{ fontSize: "1rem", color: "#09090b", margin: 0, fontWeight: 700 }}>Conversations</h2>
+          <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#71717a' }}>{users.length} active chat{users.length !== 1 ? 's' : ''}</p>
         </div>
         <div style={{ flex: 1, overflowY: "auto" }}>
           {users.length === 0 ? (
-            <p style={{ color: "#71717a", textAlign: "center", marginTop: "20px" }}>No active chats</p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px', color: '#71717a', textAlign: 'center' }}>
+              <div style={{ fontSize: '2rem', marginBottom: '12px' }}>💬</div>
+              <p style={{ margin: 0, fontSize: '13px' }}>No active chats yet</p>
+            </div>
           ) : (
             users.map((userId) => {
               const lastMsg = chats[userId][chats[userId].length - 1];
               const userName = userInfos[userId]?.username || "Unknown User";
+              const isActive = activeUser === userId;
 
               return (
                 <div
                   key={userId}
                   onClick={() => setActiveUser(userId)}
                   style={{
-                    padding: "15px 20px",
+                    padding: "14px 18px",
                     cursor: "pointer",
-                    background: activeUser === userId ? "#27272a" : "transparent",
-                    borderBottom: "1px solid #27272a",
-                    transition: "0.2s",
+                    background: isActive ? "#eff6ff" : "transparent",
+                    borderBottom: "1px solid #f4f4f5",
+                    borderLeft: isActive ? "3px solid #0052cc" : "3px solid transparent",
+                    transition: "all 0.15s",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "#6366f1", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: "bold" }}>
-                      {userName.charAt(0)}
+                    <div style={{ 
+                      width: "38px", height: "38px", borderRadius: "50%", 
+                      background: isActive ? "#0052cc" : "#e0e7ff", 
+                      display: "flex", alignItems: "center", justifyContent: "center", 
+                      color: isActive ? "#fff" : "#0052cc", 
+                      fontWeight: 700, fontSize: '14px',
+                      flexShrink: 0
+                    }}>
+                      {userName.charAt(0).toUpperCase()}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ color: "#fff", fontWeight: "500" }}>{userName}</div>
-                      <div style={{ color: "#71717a", fontSize: "0.8rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {lastMsg?.message}
+                      <div style={{ color: "#09090b", fontWeight: 600, fontSize: '14px' }}>{userName}</div>
+                      <div style={{ color: "#71717a", fontSize: "0.75rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {lastMsg?.message || 'No messages yet'}
                       </div>
                     </div>
                   </div>
@@ -187,34 +208,51 @@ export default function MessagesPage() {
       </div>
 
       {/* Main: Chat Area */}
-      <div style={{ flex: 1, background: "#18181b", borderRadius: "12px", border: "1px solid #27272a", display: "flex", flexDirection: "column" }}>
+      <div style={{ 
+        flex: 1, 
+        background: "#fff", 
+        borderRadius: "12px", 
+        border: "1px solid #e4e4e7",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
+        display: "flex", 
+        flexDirection: "column" 
+      }}>
         {activeUser ? (
           <>
-            <div style={{ padding: "20px", borderBottom: "1px solid #27272a", display: "flex", alignItems: "center", gap: "10px" }}>
-              <div style={{ width: "35px", height: "35px", borderRadius: "50%", background: "#6366f1", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: "bold", fontSize: "0.9rem" }}>
-                {(userInfos[activeUser]?.username || "U").charAt(0)}
+            <div style={{ padding: "18px 20px", borderBottom: "1px solid #e4e4e7", display: "flex", alignItems: "center", gap: "12px", background: '#fafafa', borderRadius: '12px 12px 0 0' }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#0052cc", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "0.85rem" }}>
+                {(userInfos[activeUser]?.username || "U").charAt(0).toUpperCase()}
               </div>
-              <h2 style={{ fontSize: "1.1rem", color: "#fff", margin: 0 }}>
-                {userInfos[activeUser]?.username || "Unknown User"}
-              </h2>
+              <div>
+                <h2 style={{ fontSize: "0.95rem", color: "#09090b", margin: 0, fontWeight: 700 }}>
+                  {userInfos[activeUser]?.username || "Unknown User"}
+                </h2>
+                <div style={{ fontSize: '12px', color: '#22c55e', fontWeight: 500 }}>● Online</div>
+              </div>
             </div>
             
-            <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "15px" }}>
+            <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px", background: '#fafafa' }}>
               {chats[activeUser].map((msg, i) => (
                 <div
                   key={i}
                   style={{
                     alignSelf: msg.isMe ? "flex-end" : "flex-start",
                     maxWidth: "70%",
-                    padding: "12px 16px",
-                    borderRadius: "12px",
-                    background: msg.isMe ? "#6366f1" : "#27272a",
-                    color: "#fff",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                   }}
                 >
-                  <div style={{ fontSize: "0.95rem" }}>{msg.message}</div>
-                  <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.5)", marginTop: "4px", textAlign: "right" }}>
+                  <div style={{
+                    padding: "11px 16px",
+                    borderRadius: msg.isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                    background: msg.isMe ? "#0052cc" : "#fff",
+                    color: msg.isMe ? "#fff" : "#09090b",
+                    border: msg.isMe ? 'none' : '1px solid #e4e4e7',
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                    fontSize: '14px',
+                    lineHeight: '1.5'
+                  }}>
+                    {msg.message}
+                  </div>
+                  <div style={{ fontSize: "0.7rem", color: "#71717a", marginTop: "4px", textAlign: msg.isMe ? "right" : "left", paddingLeft: msg.isMe ? 0 : '4px', paddingRight: msg.isMe ? '4px' : 0 }}>
                     {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
                   </div>
                 </div>
@@ -222,7 +260,7 @@ export default function MessagesPage() {
               <div ref={chatEndRef} />
             </div>
 
-            <div style={{ padding: "20px", borderTop: "1px solid #27272a", display: "flex", gap: "10px" }}>
+            <div style={{ padding: "16px 20px", borderTop: "1px solid #e4e4e7", display: "flex", gap: "10px", background: '#fff', borderRadius: '0 0 12px 12px' }}>
               <input
                 type="text"
                 placeholder="Type your response..."
@@ -231,26 +269,28 @@ export default function MessagesPage() {
                 onKeyPress={(e) => e.key === "Enter" && sendMessage()}
                 style={{
                   flex: 1,
-                  background: "#09090b",
-                  border: "1px solid #27272a",
+                  background: "#fafafa",
+                  border: "1px solid #e4e4e7",
                   borderRadius: "8px",
-                  padding: "12px",
-                  color: "#fff",
+                  padding: "11px 14px",
+                  color: "#09090b",
                   outline: "none",
+                  fontSize: '14px'
                 }}
               />
               <button
                 onClick={sendMessage}
                 disabled={!message.trim()}
                 style={{
-                  background: message.trim() ? "#6366f1" : "#3f3f46",
-                  color: "#fff",
+                  background: message.trim() ? "#0052cc" : "#f4f4f5",
+                  color: message.trim() ? "#fff" : "#a1a1aa",
                   border: "none",
                   borderRadius: "8px",
-                  padding: "0 25px",
-                  fontWeight: "600",
+                  padding: "0 22px",
+                  fontWeight: 600,
                   cursor: message.trim() ? "pointer" : "default",
                   transition: "background 0.2s",
+                  fontSize: '14px'
                 }}
               >
                 Send
@@ -258,10 +298,10 @@ export default function MessagesPage() {
             </div>
           </>
         ) : (
-          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#71717a", flexDirection: "column" }}>
-            <div style={{ fontSize: "4rem", marginBottom: "20px", opacity: 0.5 }}>💬</div>
-            <h3 style={{ color: "#fff", marginBottom: "8px" }}>Your Messages</h3>
-            <p>Select a user from the sidebar to start a conversation</p>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#71717a", flexDirection: "column", gap: '12px' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: "2rem" }}>💬</div>
+            <h3 style={{ color: "#09090b", marginBottom: "4px", fontWeight: 700 }}>Your Messages</h3>
+            <p style={{ margin: 0, fontSize: '14px' }}>Select a user from the sidebar to start a conversation</p>
           </div>
         )}
       </div>

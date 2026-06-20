@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat'; // Add this for heatmap support
 import { MapComponentProps, MapMarker } from './types';
+
 
 // Utility component to handle heatmap rendering
 function HeatmapLayer({ markers, visible }: { markers: MapMarker[], visible: boolean }) {
@@ -49,14 +50,32 @@ function HeatmapLayer({ markers, visible }: { markers: MapMarker[], visible: boo
   return null;
 }
 
-// Utility component to handle dynamic center updating
+// Utility component to handle dynamic center updating.
+// Only sets the initial view ONCE on mount — never resets zoom on polling updates.
 function MapUpdater({ center, zoom }: { center: [number, number], zoom: number }) {
   const map = useMap();
+  const hasInitialized = React.useRef(false);
+
+  // One-time: fix tile rendering after mount
   useEffect(() => {
-    map.setView(center, zoom);
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [map]);
+
+  // Only fly to the center the very first time (so user zoom is never reset by polling)
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      map.invalidateSize();
+      map.setView(center, zoom);
+      hasInitialized.current = true;
+    }
   }, [center, zoom, map]);
+  
   return null;
 }
+
 
 // Custom Icons for different marker types
 const createCustomIcon = (marker: MapMarker) => {
@@ -115,9 +134,13 @@ export default function MapComponent({
   center = [31.5204, 74.3587], 
   zoom = 15, 
   markers = [],
-  className 
+  className,
+  geofenceRadius,
+  geofenceCenter
 }: MapComponentProps) {
   const [isHeatMode, setIsHeatMode] = React.useState(false);
+  const [mapType, setMapType] = React.useState<'roadmap' | 'hybrid'>('roadmap');
+
   
   // Adding global CSS for the pulse animation and heatmap controls
   useEffect(() => {
@@ -182,6 +205,19 @@ export default function MapComponent({
          >
            🔥 Heatmap
          </button>
+         <div style={{ width: '1px', background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
+         <button 
+           className={`map-toggle-btn ${mapType === 'roadmap' ? 'active' : ''}`} 
+           onClick={() => setMapType('roadmap')}
+         >
+           🗺️ Map
+         </button>
+         <button 
+           className={`map-toggle-btn ${mapType === 'hybrid' ? 'active' : ''}`} 
+           onClick={() => setMapType('hybrid')}
+         >
+           🛰️ Satellite
+         </button>
       </div>
 
       <MapContainer 
@@ -190,14 +226,36 @@ export default function MapComponent({
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        {mapType === 'roadmap' ? (
+          <TileLayer
+            attribution='&copy; Google Maps'
+            url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+          />
+        ) : (
+          <TileLayer
+            attribution='&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          />
+        )}
         
         <MapUpdater center={center} zoom={zoom} />
         
         <HeatmapLayer markers={markers} visible={isHeatMode} />
+
+        {geofenceCenter && geofenceRadius && (
+          <Circle
+            center={geofenceCenter}
+            radius={geofenceRadius}
+            pathOptions={{
+              color: '#3b82f6',
+              fillColor: '#3b82f6',
+              fillOpacity: 0.1,
+              weight: 2,
+              dashArray: '5, 8'
+            }}
+          />
+        )}
+
 
         {!isHeatMode && markers.map((marker) => (
           <Marker 

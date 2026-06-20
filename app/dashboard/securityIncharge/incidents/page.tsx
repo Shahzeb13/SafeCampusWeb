@@ -81,18 +81,18 @@ export default function IncidentsPage() {
                Loading incidents...
              </div>
           ) : data.length === 0 ? (
-             <div style={{ padding: '80px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'rgba(20, 20, 25, 0.4)' }}>
+             <div style={{ padding: '80px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#fff' }}>
                <div style={{ 
                  width: '80px', height: '80px', 
                  borderRadius: '50%', 
-                 background: 'rgba(22, 163, 74, 0.1)', 
+                 background: 'rgba(22, 163, 74, 0.08)', 
                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                  marginBottom: '24px', border: '1px solid rgba(74, 222, 128, 0.2)'
                }}>
                  <span style={{ fontSize: '32px' }}>✨</span>
                </div>
-               <h3 style={{ margin: '0 0 8px', fontSize: '1.25rem', color: '#fff', fontWeight: 600 }}>Coast is clear!</h3>
-               <p style={{ margin: 0, color: '#a1a1aa', maxWidth: '300px', lineHeight: 1.5 }}>
+               <h3 style={{ margin: '0 0 8px', fontSize: '1.25rem', color: '#09090b', fontWeight: 600 }}>Coast is clear!</h3>
+               <p style={{ margin: 0, color: '#71717a', maxWidth: '300px', lineHeight: 1.5 }}>
                  {filterType === 'all' 
                    ? "There are absolutely no incidents currently reported in your database. Good job keeping the campus safe!" 
                    : `There are currently no incidents matching the "${filterType.replace(/_/g, ' ')}" category.`}
@@ -113,13 +113,13 @@ export default function IncidentsPage() {
               <tbody>
                 {data.map((incident: any) => (
                   <tr key={incident._id}>
-                    <td style={{ fontWeight: 500, color: '#e4e4e7', textTransform: 'capitalize' }}>
+                    <td style={{ fontWeight: 500, color: '#09090b', textTransform: 'capitalize' }}>
                       {incident.incidentType?.replace(/_/g, ' ')}
                     </td>
                     <td>{incident.locationText || 'No location given'}</td>
                     <td>
                       <div><strong>{incident.reporter_id?.username || 'Unknown'}</strong></div>
-                      <div style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>{incident.reporter_id?.email || 'N/A'}</div>
+                      <div style={{ fontSize: '0.8rem', color: '#71717a' }}>{incident.reporter_id?.email || 'N/A'}</div>
                     </td>
                     <td>
                       <span className={`${styles.badge} ${incident.status === 'resolved' ? styles.badgeSuccess : incident.status === 'pending' ? styles.badgeWarning : styles.badgeInfo}`}>
@@ -128,7 +128,7 @@ export default function IncidentsPage() {
                     </td>
                     <td>{new Date(incident.createdAt).toLocaleDateString()} at {new Date(incident.createdAt).toLocaleTimeString()}</td>
                     <td>
-                      <Link href={`/dashboard/admin/incidents/${incident._id}`}>
+                      <Link href={`/dashboard/securityIncharge/incidents/${incident._id}`}>
                         <button className={styles.primaryButton} style={{ padding: '6px 12px', fontSize: '12px', cursor: 'pointer' }}>View Dossier</button>
                       </Link>
                     </td>
