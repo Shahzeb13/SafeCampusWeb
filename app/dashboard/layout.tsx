@@ -69,6 +69,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Emergency Contacts', path: '/dashboard/securityIncharge/emergency-contacts', icon: <PhoneCallIcon /> },
     { name: 'Security Guards', path: '/dashboard/securityIncharge/security-guards', icon: <ShieldGuardIcon /> },
     { name: 'Messages', path: '/dashboard/securityIncharge/messages', icon: <ChatIcon /> },
+    { name: 'Assignment Responses', path: '/dashboard/securityIncharge/assignments/responses', icon: <FileTextIcon /> },
+    { name: 'SOS Responses', path: '/dashboard/securityIncharge/sos/responses', icon: <FileTextIcon /> },
     { name: 'Manage Users', path: '/dashboard/securityIncharge/users', icon: <UsersIcon /> },
   ];
 

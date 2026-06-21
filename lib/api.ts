@@ -174,6 +174,9 @@ export const incidents = {
   getById: (id: string) => {
     return apiRequest(`/incidents/${id}`, "GET");
   },
+  getAssignmentResponses: () => {
+    return apiRequest(`/incidents/assignment-responses`, "GET");
+  },
   updateStatus: (incidentId: string, status: string, rejectionReason?: string) => {
     return apiRequest("/incidents/update-status", "POST", { incidentId, status, rejectionReason });
   }

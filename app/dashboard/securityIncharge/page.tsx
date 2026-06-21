@@ -281,6 +281,13 @@ export default function SecurityInchargeDashboard() {
                 }}>
                   <CameraIcon /> Live CCTV Feeds
                 </Link>
+                <Link href="/dashboard/securityIncharge/assignments/responses" style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  background: '#fff', color: '#09090b', border: '1px solid #e4e4e7', borderRadius: 8, padding: '10px 14px',
+                  fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s'
+                }}>
+                  <UsersIcon /> Guard Responses
+                </Link>
                 <Link href="/dashboard/securityIncharge/security-guards" style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   background: '#fff', color: '#09090b', border: '1px solid #e4e4e7', borderRadius: 8, padding: '10px 14px',
