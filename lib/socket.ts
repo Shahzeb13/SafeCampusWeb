@@ -2,21 +2,21 @@ import { io, Socket } from "socket.io-client";
 
 const SOCKET_URL = "http://localhost:4000";
 
-const LEGACY_ADMIN_ID = "67c59508544c9b003328e469";
 let socket: Socket | null = null;
 
 export const initAdminSocket = (adminId: string) => {
   if (!socket) {
+    const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
     socket = io(SOCKET_URL, {
       transports: ["websocket"],
+      auth: { token },
       withCredentials: true,
     });
   }
 
   const joinRooms = () => {
-    console.log("Admin joining rooms:", adminId, LEGACY_ADMIN_ID);
+    console.log("Admin joining room:", adminId);
     socket?.emit("join", adminId);
-    socket?.emit("join", LEGACY_ADMIN_ID); // Join legacy room to receive messages from mobile app
   };
 
   if (socket.connected) {

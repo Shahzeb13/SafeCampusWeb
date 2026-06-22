@@ -11,17 +11,63 @@ const BASE_URL = "http://localhost:4000/api";
 export default function MessagesPage() {
   const [chats, setChats] = useState<{ [userId: string]: any[] }>({});
   const [userInfos, setUserInfos] = useState<{ [userId: string]: any }>({});
+  const [onlineUsers, setOnlineUsers] = useState<{ [userId: string]: boolean }>({});
+  const [typingUsers, setTypingUsers] = useState<{ [userId: string]: boolean }>({});
   const [activeUser, setActiveUser] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [adminUser, setAdminUser] = useState<any>(null);
+  
   const chatEndRef = useRef<HTMLDivElement>(null);
   const activeUserRef = useRef<string | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Keep the ref in sync with state for socket listeners
   useEffect(() => {
     activeUserRef.current = activeUser;
   }, [activeUser]);
+
+  // Load chat history dynamically when activeUser is selected
+  useEffect(() => {
+    if (!activeUser || !adminUser) return;
+    
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/chat/history/${activeUser}/${adminUser.id}`, {
+          headers: { 
+            'Authorization': `Bearer ${localStorage.getItem('userToken')}` 
+          }
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+          setChats(prev => ({
+            ...prev,
+            [activeUser]: result.data.map((m: any) => ({
+              ...m,
+              // Normalize createdAt -> timestamp (DB uses createdAt, socket payloads use timestamp)
+              timestamp: m.timestamp || m.createdAt,
+              // senderId from DB is an ObjectId, must use toString() for reliable comparison
+              isMe: m.senderId?.toString() === adminUser.id,
+              senderName: m.senderId?.toString() === adminUser.id ? "Campus Admin" : userInfos[activeUser]?.username || "User",
+            }))
+          }));
+
+          // Mark read
+          const socket = getAdminSocket();
+          if (socket && result.data.length > 0) {
+            const firstMsg = result.data[0];
+            socket.emit("mark_read", { conversationId: firstMsg.conversationId, senderId: activeUser });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load history for user", activeUser, err);
+        toast.error("Failed to sync conversation messages");
+      }
+    };
+
+    fetchHistory();
+  }, [activeUser, adminUser]);
 
   useEffect(() => {
     const initializeChat = async () => {
@@ -33,7 +79,7 @@ export default function MessagesPage() {
         setAdminUser(profile);
         const adminId = profile.id;
 
-        // 2. Fetch history from DB
+        // 2. Fetch all conversations from DB
         const response = await fetch(`${BASE_URL}/chat/conversations`, {
           headers: { 
             'Authorization': `Bearer ${localStorage.getItem('userToken')}` 
@@ -51,12 +97,11 @@ export default function MessagesPage() {
             // Find the other participant (the student/user)
             const user = conv.participants.find((p: any) => p._id !== adminId);
             if (user) {
-              infoMap[user._id] = user;
-              chatMap[user._id] = conv.messages.map((m: any) => ({
-                ...m,
-                isMe: m.senderId === adminId,
-                senderName: m.senderId === adminId ? "Campus Admin" : user.username,
-              }));
+              infoMap[user._id] = {
+                ...user,
+                lastMessageText: conv.lastMessage?.message || ""
+              };
+              chatMap[user._id] = []; // messages will be lazy-loaded on select
             }
           });
           setChats(chatMap);
@@ -66,26 +111,80 @@ export default function MessagesPage() {
         // 3. Init Socket
         const socket = initAdminSocket(adminId);
 
-        // Remove any existing listeners to avoid duplicates
+        // Clear previous listeners to prevent duplicates
         socket.off("receive_message");
+        socket.off("user_status");
+        socket.off("user_typing");
+        socket.off("user_stop_typing");
+        socket.off("messages_read");
 
+        // Event listeners
         socket.on("receive_message", (data: any) => {
+          const senderId = data.senderId;
+          
+          // Add message to chats map (create the entry if it doesn't exist yet)
           setChats((prev) => {
-            const userId = data.senderId;
-            const userChats = prev[userId] || [];
-            
-            const isDuplicate = userChats.some(m => m.timestamp === data.timestamp && m.message === data.message);
+            const userChats = prev[senderId] || [];
+            const isDuplicate = userChats.some(m => 
+              (m.timestamp === data.timestamp || m.createdAt === data.timestamp) && m.message === data.message
+            );
             if (isDuplicate) return prev;
-
             return {
               ...prev,
-              [userId]: [...userChats, { ...data, isMe: false }],
+              [senderId]: [...userChats, { ...data, isMe: false }],
             };
           });
+
+          // Ensure the user appears in the sidebar — bootstrap from socket payload
+          // if they're not already in userInfos (e.g. first message ever or page refresh)
+          setUserInfos(prev => ({
+            ...prev,
+            [senderId]: {
+              // Use existing info if available, else bootstrap from socket payload
+              _id: prev[senderId]?._id || senderId,
+              username: prev[senderId]?.username || data.senderName || "Unknown User",
+              ...prev[senderId],
+              lastMessageText: data.message,
+            }
+          }));
           
-          if (activeUserRef.current !== data.senderId) {
+          if (activeUserRef.current === senderId) {
+            socket.emit("mark_read", { conversationId: data.conversationId, senderId });
+          } else {
             toast(`New message from ${data.senderName}`, { icon: "💬" });
           }
+        });
+
+        socket.on("user_status", (data: { userId: string; status: 'online' | 'offline' }) => {
+          setOnlineUsers(prev => ({
+            ...prev,
+            [data.userId]: data.status === 'online'
+          }));
+        });
+
+        socket.on("user_typing", (data: { senderId: string }) => {
+          setTypingUsers(prev => ({
+            ...prev,
+            [data.senderId]: true
+          }));
+        });
+
+        socket.on("user_stop_typing", (data: { senderId: string }) => {
+          setTypingUsers(prev => ({
+            ...prev,
+            [data.senderId]: false
+          }));
+        });
+
+        socket.on("messages_read", (data: { conversationId: string; readerId: string }) => {
+          setChats(prev => {
+            const readerId = data.readerId;
+            const updated = { ...prev };
+            if (updated[readerId]) {
+              updated[readerId] = updated[readerId].map(m => ({ ...m, isRead: true }));
+            }
+            return updated;
+          });
         });
 
       } catch (err) {
@@ -109,9 +208,27 @@ export default function MessagesPage() {
     }
   }, [chats, activeUser]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
+    
+    const socket = getAdminSocket();
+    if (socket && activeUser) {
+      socket.emit("typing", { receiverId: activeUser });
+
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        socket.emit("stop_typing", { receiverId: activeUser });
+      }, 2000);
+    }
+  };
+
   const sendMessage = () => {
     const socket = getAdminSocket();
     if (message.trim() && activeUser && socket && adminUser) {
+      // Clear typing status
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      socket.emit("stop_typing", { receiverId: activeUser });
+
       const msgData = {
         senderId: adminUser.id,
         senderName: "Campus Admin",
@@ -124,14 +241,22 @@ export default function MessagesPage() {
       
       setChats((prev) => ({
         ...prev,
-        [activeUser]: [...(prev[activeUser] || []), { ...msgData, isMe: true }],
+        [activeUser]: [...(prev[activeUser] || []), { ...msgData, isMe: true, isRead: false }],
+      }));
+
+      setUserInfos(prev => ({
+        ...prev,
+        [activeUser]: {
+          ...prev[activeUser],
+          lastMessageText: message.trim()
+        }
       }));
       
       setMessage("");
     }
   };
 
-  const users = Object.keys(chats);
+  const users = Object.keys(userInfos);
 
   if (loading && !adminUser) {
     return (
@@ -165,9 +290,10 @@ export default function MessagesPage() {
             </div>
           ) : (
             users.map((userId) => {
-              const lastMsg = chats[userId][chats[userId].length - 1];
               const userName = userInfos[userId]?.username || "Unknown User";
+              const lastMsgText = userInfos[userId]?.lastMessageText || "No messages yet";
               const isActive = activeUser === userId;
+              const isUserOnlineStatus = !!onlineUsers[userId];
 
               return (
                 <div
@@ -183,20 +309,32 @@ export default function MessagesPage() {
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <div style={{ 
-                      width: "38px", height: "38px", borderRadius: "50%", 
-                      background: isActive ? "#0052cc" : "#e0e7ff", 
-                      display: "flex", alignItems: "center", justifyContent: "center", 
-                      color: isActive ? "#fff" : "#0052cc", 
-                      fontWeight: 700, fontSize: '14px',
-                      flexShrink: 0
-                    }}>
-                      {userName.charAt(0).toUpperCase()}
+                    <div style={{ position: "relative" }}>
+                      <div style={{ 
+                        width: "38px", height: "38px", borderRadius: "50%", 
+                        background: isActive ? "#0052cc" : "#e0e7ff", 
+                        display: "flex", alignItems: "center", justifyContent: "center", 
+                        color: isActive ? "#fff" : "#0052cc", 
+                        fontWeight: 700, fontSize: '14px',
+                        flexShrink: 0
+                      }}>
+                        {userName.charAt(0).toUpperCase()}
+                      </div>
+                      <div style={{
+                        position: "absolute",
+                        bottom: 0,
+                        right: 0,
+                        width: "10px",
+                        height: "10px",
+                        borderRadius: "50%",
+                        backgroundColor: isUserOnlineStatus ? "#22c55e" : "#94a3b8",
+                        border: "2px solid #fff"
+                      }} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ color: "#09090b", fontWeight: 600, fontSize: '14px' }}>{userName}</div>
                       <div style={{ color: "#71717a", fontSize: "0.75rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {lastMsg?.message || 'No messages yet'}
+                        {lastMsgText}
                       </div>
                     </div>
                   </div>
@@ -227,12 +365,14 @@ export default function MessagesPage() {
                 <h2 style={{ fontSize: "0.95rem", color: "#09090b", margin: 0, fontWeight: 700 }}>
                   {userInfos[activeUser]?.username || "Unknown User"}
                 </h2>
-                <div style={{ fontSize: '12px', color: '#22c55e', fontWeight: 500 }}>● Online</div>
+                <div style={{ fontSize: '12px', color: onlineUsers[activeUser] ? '#22c55e' : '#94a3b8', fontWeight: 500 }}>
+                  {typingUsers[activeUser] ? "typing..." : (onlineUsers[activeUser] ? "● Online" : "○ Offline")}
+                </div>
               </div>
             </div>
             
             <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px", background: '#fafafa' }}>
-              {chats[activeUser].map((msg, i) => (
+              {(chats[activeUser] || []).map((msg, i) => (
                 <div
                   key={i}
                   style={{
@@ -252,8 +392,24 @@ export default function MessagesPage() {
                   }}>
                     {msg.message}
                   </div>
-                  <div style={{ fontSize: "0.7rem", color: "#71717a", marginTop: "4px", textAlign: msg.isMe ? "right" : "left", paddingLeft: msg.isMe ? 0 : '4px', paddingRight: msg.isMe ? '4px' : 0 }}>
-                    {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                  <div style={{ 
+                    fontSize: "0.7rem", 
+                    color: "#71717a", 
+                    marginTop: "4px", 
+                    textAlign: msg.isMe ? "right" : "left", 
+                    paddingLeft: msg.isMe ? 0 : '4px', 
+                    paddingRight: msg.isMe ? '4px' : 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: msg.isMe ? "flex-end" : "flex-start",
+                    gap: "4px"
+                  }}>
+                    <span>{msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}</span>
+                    {msg.isMe && (
+                      <span style={{ color: msg.isRead ? "#10b981" : "#a1a1aa", fontSize: "0.8rem", fontWeight: 700 }}>
+                        {msg.isRead ? "✓✓" : "✓"}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -265,7 +421,7 @@ export default function MessagesPage() {
                 type="text"
                 placeholder="Type your response..."
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={handleInputChange}
                 onKeyPress={(e) => e.key === "Enter" && sendMessage()}
                 style={{
                   flex: 1,

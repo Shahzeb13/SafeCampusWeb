@@ -40,6 +40,12 @@ export default function LoginPage() {
       if(response){
         console.log("response exists !")
       }
+
+      // Save token to localStorage so the socket client can use it for JWT auth
+      if (response?.token) {
+        localStorage.setItem("userToken", response.token);
+      }
+
       toast.success('Successfully logged in!');
       const role = response?.role;
       console.log(role);
